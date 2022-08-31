@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameStart : MonoBehaviour
@@ -24,22 +25,21 @@ public class GameStart : MonoBehaviour
         SinglePlayButton.onClick.AddListener(OnClickSinglePlayButton);
         MultiPlayButton.onClick.AddListener(OnClickMultiPlayButton);
         ExitButton.onClick.AddListener(OnClickExitButton);
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        // TODO : 멀티 플레이 작업을 우선하기 위해
+        SinglePlayButton.interactable = false;
     }
 
     public void OnClickSinglePlayButton()
     {
-
+        // TODO : SinglePlay 모드로 작업
+        // 같은 Scene을 쓰면서 Unreal처럼 모드 별로 다른 GameMode를 사용하는 방식
     }
 
     public void OnClickMultiPlayButton()
     {
-
+        // Lobby Scene으로 이동
+        SceneManager.LoadScene("Lobby");
     }
 
     public void OnClickExitButton()
