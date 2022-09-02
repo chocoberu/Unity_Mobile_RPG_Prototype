@@ -191,7 +191,19 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         Debug.Log("방 참가 완료");
         ChangeUIMode(EUIMode.Room);
 
-        roomName.text = PhotonNetwork.CurrentRoom.Name;
+        object type;
+        PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("GameType", out type);
+        string gameType = "";
+        if((int)type == 0)
+        {
+            gameType = "PvE";
+        }
+        else if((int)type == 1)
+        {
+            gameType = "PvP";
+        }
+        roomName.text = $"{PhotonNetwork.CurrentRoom.Name} / {gameType}";
+        Debug.Log($"{roomName.text}");
         
         // UpdatePlayerList
         UpdateRoomPlayerList();
