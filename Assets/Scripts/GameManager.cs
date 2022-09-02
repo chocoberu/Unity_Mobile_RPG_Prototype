@@ -5,6 +5,30 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
+    private static GameManager instance;
+    public static GameManager Instance
+    {
+        get
+        {
+            return instance;
+        }
+    }
+
+    [SerializeField]
+    private GameMode gameMode;
+
+    private void Awake()
+    {
+        if(null == instance)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -22,6 +46,8 @@ public class GameManager : MonoBehaviourPunCallbacks
                     if(true == PhotonNetwork.IsMasterClient)
                     {
                         Debug.Log("PvE GameMode");
+                        GameObject gameModeObject = PhotonNetwork.Instantiate("PvEGameMode", Vector3.zero, Quaternion.identity);
+                        gameMode = gameModeObject.GetComponent<GameMode>();
                     }
                 }
                 break;
@@ -40,5 +66,10 @@ public class GameManager : MonoBehaviourPunCallbacks
     void Update()
     {
         
+    }
+
+    public void SetGameMode(GameMode newGameMode)
+    {
+        gameMode = newGameMode;
     }
 }

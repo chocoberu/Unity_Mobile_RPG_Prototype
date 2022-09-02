@@ -196,15 +196,16 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         string gameType = "";
         if((int)type == 0)
         {
+            GameInstance.Instance.GameType = GameInstance.EGameType.PvE;
             gameType = "PvE";
         }
         else if((int)type == 1)
         {
+            GameInstance.Instance.GameType = GameInstance.EGameType.PvP;
             gameType = "PvP";
         }
         roomName.text = $"{PhotonNetwork.CurrentRoom.Name} / {gameType}";
-        Debug.Log($"{roomName.text}");
-        
+       
         // UpdatePlayerList
         UpdateRoomPlayerList();
     }
@@ -341,7 +342,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         // Start Button으로 동작
         if(true == PhotonNetwork.IsMasterClient)
         {
-            if(false == StartGame())
+            if(false == IsStartGame())
             {
                 Debug.Log("Log : 게임을 시작할 수 없습니다. 모든 플레이어가 준비된 상태여야 합니다.");
                 return;
@@ -358,8 +359,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
                     GameInstance.Instance.GameType = GameInstance.EGameType.PvP;
                 }
                 
-                Debug.Log("Log : Start Game! ");
-                PhotonNetwork.LoadLevel("Town");
+                photonView.RPC("StartGame", RpcTarget.All);
             }
         }
 
@@ -448,9 +448,24 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     private void UpdateRoomPlayerList()
     {
-        int index = 0;
+        // PlayerList 초기화
+        for (int index = 0; index < MaxPlayerCount; index++)
+        {
+            Text playerName = playerButtonList[index].transform.Find("PlayerName").GetComponent<Text>();
+            Text readyState = playerButtonList[index].transform.Find("ReadyState").GetComponent<Text>();
+
+            playerName.text = "empty";
+            readyState.text = "not\nready";
+        }
+
         foreach (var player in PhotonNetwork.CurrentRoom.Players.Values)
         {
+            int index = player.ActorNumber - 1;
+            if(index < 0 || index >= MaxPlayerCount)
+            {
+                continue;
+            }
+
             Text playerName = playerButtonList[index].transform.Find("PlayerName").GetComponent<Text>();
             Text readyState = playerButtonList[index].transform.Find("ReadyState").GetComponent<Text>();
             
@@ -460,22 +475,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             player.CustomProperties.TryGetValue("ready", out flag);
             readyState.text = (bool)flag == true ? "ready" : "not\nready";
 
-            Debug.Log($"Player : {playerName.text}");
-
-            index++;
-        }
-
-        for(; index < MaxPlayerCount; index++)
-        {
-            Text playerName = playerButtonList[index].transform.Find("PlayerName").GetComponent<Text>();
-            Text readyState = playerButtonList[index].transform.Find("ReadyState").GetComponent<Text>();
-
-            playerName.text = "empty";
-            readyState.text = "not\nready";
+            Debug.Log($"player {player.NickName}, ActorNumber : {player.ActorNumber}");
         }
     }
 
-    private bool StartGame()
+    private bool IsStartGame()
     {
         foreach(var player in PhotonNetwork.CurrentRoom.Players.Values)
         {
@@ -527,5 +531,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         {
             UpdateRoomPlayerList();
         }
+    }
+
+    [PunRPC]
+    public void StartGame()
+    {
+        Debug.Log("Start Game");
+        PhotonNetwork.LoadLevel("Town");
     }
 }
