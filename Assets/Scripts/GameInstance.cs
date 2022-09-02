@@ -15,8 +15,7 @@ public class GameInstance : MonoBehaviour
 
     public enum EGameType
     {
-        None = 0,
-        Single,
+        Single = 0,
         PvE,
         PvP
     }
@@ -51,6 +50,7 @@ public class GameInstance : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        GameType = EGameType.Single;
         DontDestroyOnLoad(gameObject);
     }
 

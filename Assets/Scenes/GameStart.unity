@@ -797,7 +797,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 798267174}
   m_OnClick:
     m_PersistentCalls:
@@ -1040,6 +1040,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1aa8db557b533ab419fae2f5d6da0333, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameType: 0
 --- !u!4 &1226448363
 Transform:
   m_ObjectHideFlags: 0

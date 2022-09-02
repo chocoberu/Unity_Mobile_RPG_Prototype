@@ -359,6 +359,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
                 }
                 
                 Debug.Log("Log : Start Game! ");
+                PhotonNetwork.LoadLevel("Town");
             }
         }
 
