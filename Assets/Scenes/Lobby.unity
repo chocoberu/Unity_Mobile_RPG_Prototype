@@ -2449,6 +2449,7 @@ MonoBehaviour:
   nicknameConfirmButton: {fileID: 0}
   prevButton: {fileID: 0}
   createRoomButton: {fileID: 0}
+  readyStartButton: {fileID: 0}
   roomButtonList:
   - {fileID: 1960661245}
   - {fileID: 915498391}
@@ -7847,7 +7848,7 @@ GameObject:
   - component: {fileID: 2048250807}
   - component: {fileID: 2048250806}
   m_Layer: 5
-  m_Name: ReadyButton
+  m_Name: ReadyStartButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

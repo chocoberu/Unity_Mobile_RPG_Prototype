@@ -33,16 +33,25 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public TMP_InputField nicknameInputField;
     public Button nicknameConfirmButton;
 
+    // Lobby
     public Button prevButton;
     public Button createRoomButton;
+
+    // Room Panel
+    public Button readyStartButton;
+    public Text roomName;
 
     public List<Button> roomButtonList;
     public List<Button> playerButtonList;
 
+    // Crete Room Panel
     public TMP_InputField roomNameInputField;
     public TMP_Dropdown gameTypeDropdown;
     public Button roomConfirmButton;
     public Button roomCancleButton;
+
+    // Player List
+    private List<Player> playerList;
 
     // Start is called before the first frame update
     void Start()
@@ -54,6 +63,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         prevButton = GameObject.Find("PrevButton").GetComponent<Button>();
         createRoomButton = GameObject.Find("CreateRoomButton").GetComponent<Button>();
+
+        readyStartButton = GameObject.Find("ReadyStartButton").GetComponent<Button>();
+        roomName = GameObject.Find("RoomName").GetComponent<Text>();
 
         lobbyPanel = GameObject.Find("LobbyPanel");
         roomPanel = GameObject.Find("RoomPanel");
@@ -72,6 +84,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         nicknameConfirmButton.onClick.AddListener(OnClickNicknameConfirmButton);
         prevButton.onClick.AddListener(OnClickPrevButton);
         createRoomButton.onClick.AddListener(OnClickCreateRoomButton);
+
+        readyStartButton.onClick.AddListener(OnClickReadyStartButton);
 
         roomConfirmButton.onClick.AddListener(OnClickRoomConfirmButton);
         roomCancleButton.onClick.AddListener(OnClickRoomCancleButton);
@@ -104,6 +118,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         base.OnJoinedLobby();
 
         connectionInfoText.text = "";
+        PhotonNetwork.LocalPlayer.CustomProperties.Clear();
+        PhotonNetwork.LocalPlayer.CustomProperties.TryAdd("ready", false);
+
         ChangeUIMode(EUIMode.Lobby);
     }
 
@@ -174,6 +191,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         Debug.Log("방 참가 완료");
         ChangeUIMode(EUIMode.Room);
 
+        roomName.text = PhotonNetwork.CurrentRoom.Name;
+        
         // UpdatePlayerList
         UpdateRoomPlayerList();
     }
@@ -190,6 +209,25 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         base.OnPlayerEnteredRoom(newPlayer);
 
+        if(null == newPlayer)
+        {
+            return;
+        }
+
+        ExitGames.Client.Photon.Hashtable customProperties = newPlayer.CustomProperties;
+        if(true == customProperties.ContainsKey("ready"))
+        {
+            customProperties["ready"] = false;
+        }
+        else
+        {
+            customProperties.TryAdd("ready", false);
+        }
+        newPlayer.SetCustomProperties(customProperties);
+
+        //playerList.Add(newPlayer);
+        Debug.Log($"Player {newPlayer.NickName} enter");
+        
         // UpdatePlayerList
         UpdateRoomPlayerList();
     }
@@ -198,6 +236,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         base.OnPlayerLeftRoom(otherPlayer);
 
+        //playerList.Remove(otherPlayer);
+        Debug.Log($"Player {otherPlayer.NickName} left");
+        
         // UpdatePlayerList
         UpdateRoomPlayerList();
     }
@@ -250,6 +291,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         ExitGames.Client.Photon.Hashtable customProperties = new ExitGames.Client.Photon.Hashtable();
         customProperties.Add("GameType", gameTypeDropdown.value);
+
+        PhotonNetwork.LocalPlayer.CustomProperties["ready"] = true;
+
         PhotonNetwork.CreateRoom(RoomName, new RoomOptions { MaxPlayers = MaxPlayerCount, CustomRoomProperties = customProperties });
     }
 
@@ -280,6 +324,30 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         ChangeUIMode(EUIMode.CreateRoom);
     }
 
+    public void OnClickReadyStartButton()
+    {
+        // Start Button으로 동작
+        if(true == PhotonNetwork.IsMasterClient)
+        {
+            if(false == StartGame())
+            {
+                Debug.Log("Log : 게임을 시작할 수 없습니다. 모든 플레이어가 준비된 상태여야 합니다.");
+                return;
+            }
+            else
+            {
+                // TODO : Town Scene으로 이동
+                Debug.Log("Log : Start Game! ");
+            }
+        }
+
+        // Ready Button으로 동작
+        else
+        {
+            SetReadyState();
+        }
+    }
+
     private void ChangeUIMode(EUIMode mode)
     {
         switch(mode)
@@ -287,6 +355,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             case EUIMode.Lobby:
                 {
                     prevButton.gameObject.SetActive(true);
+                    prevButton.interactable = true;
+
                     lobbyPanel.SetActive(true);
                     nicknamePanel.SetActive(false);
                     roomPanel.SetActive(false);
@@ -317,6 +387,17 @@ public class LobbyManager : MonoBehaviourPunCallbacks
                     lobbyPanel.SetActive(false);
                     roomPanel.SetActive(true);
                     createRoomPanel.SetActive(false);
+
+                    // 호스트인 경우 ReadyStartButton을 Start로
+                    if (true == PhotonNetwork.IsMasterClient)
+                    {
+                        readyStartButton.GetComponentInChildren<Text>().text = "START";
+                    }
+                    else
+                    {
+                        readyStartButton.GetComponentInChildren<Text>().text = "READY";
+                    }
+
                 }
                 break;
         }
@@ -352,7 +433,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             Text readyState = playerButtonList[index].transform.Find("ReadyState").GetComponent<Text>();
             
             playerName.text = player.NickName;
-            // TODO : Ready State
+            object flag;
+
+            player.CustomProperties.TryGetValue("ready", out flag);
+            readyState.text = (bool)flag == true ? "ready" : "not\nready";
+
+            Debug.Log($"Player : {playerName.text}");
 
             index++;
         }
@@ -364,6 +450,60 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
             playerName.text = "empty";
             readyState.text = "not\nready";
+        }
+    }
+
+    private bool StartGame()
+    {
+        foreach(var player in PhotonNetwork.CurrentRoom.Players.Values)
+        {
+            if(true == player.IsMasterClient)
+            {
+                //continue;
+            }
+
+            if(false == player.CustomProperties.ContainsKey("ready"))
+            {
+                return false;
+            }
+            if(false == (bool)player.CustomProperties["ready"])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void SetReadyState()
+    {
+        object flag;
+        if(false == PhotonNetwork.LocalPlayer.CustomProperties.TryGetValue("ready", out flag))
+        {
+            Debug.Log($"Error : Player CustomProperties not exist ready");
+            return;
+        }
+        ExitGames.Client.Photon.Hashtable customProperties = PhotonNetwork.LocalPlayer.CustomProperties;
+
+        customProperties["ready"] = !(bool)flag;
+        PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
+
+        if (true == (bool)flag)
+        {
+            prevButton.interactable = false;
+        }
+        else
+        {
+            prevButton.interactable = true;
+        }
+    }
+
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
+    {
+        base.OnPlayerPropertiesUpdate(targetPlayer, changedProps);
+
+        if (uiMode == EUIMode.Room)
+        {
+            UpdateRoomPlayerList();
         }
     }
 }
