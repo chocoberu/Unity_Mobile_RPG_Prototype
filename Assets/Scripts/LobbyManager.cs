@@ -348,7 +348,16 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             }
             else
             {
-                // TODO : Town Scene으로 이동
+                // TODO : Town Scene으로 이동, GameType에 따라 다른 GameMode를 사용하도록 설정 필요
+                if((int)PhotonNetwork.CurrentRoom.CustomProperties["GameType"] == 0)
+                {
+                    GameInstance.Instance.GameType = GameInstance.EGameType.PvE;
+                }
+                else if((int)PhotonNetwork.CurrentRoom.CustomProperties["GameType"] == 1)
+                {
+                    GameInstance.Instance.GameType = GameInstance.EGameType.PvP;
+                }
+                
                 Debug.Log("Log : Start Game! ");
             }
         }
