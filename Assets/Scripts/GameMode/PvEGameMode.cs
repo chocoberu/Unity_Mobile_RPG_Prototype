@@ -24,7 +24,9 @@ public class PvEGameMode : GameMode
             GameManager.Instance.SetGameMode(this);
         }
 
+        // TEST CODE
         Debug.Log("Instantiate Character");
+        PhotonNetwork.Instantiate("TestPlayer", new Vector3(0.0f, 2.0f, 0.0f), Quaternion.identity);
     }
 
     public override void StartMatch()

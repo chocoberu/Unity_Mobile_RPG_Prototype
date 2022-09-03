@@ -44,7 +44,15 @@ public class GameInstance : MonoBehaviour
         else
         {
             Destroy(gameObject);
+            return;
         }
+
+        Initialize();
+    }
+
+    private void Initialize()
+    {
+        // TODO : ∞‘¿” Static Info Load
     }
 
     // Start is called before the first frame update
