@@ -2097,9 +2097,10 @@ GameObject:
   - component: {fileID: 8968553135307998601}
   - component: {fileID: 8968553135307998602}
   - component: {fileID: 8968553135307998607}
+  - component: {fileID: -5431743422459063037}
   m_Layer: 0
   m_Name: TestPlayer
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2257,9 +2258,22 @@ MonoBehaviour:
   observableSearch: 2
   ObservedComponents:
   - {fileID: 8968553135307998600}
+  - {fileID: -5431743422459063037}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &-5431743422459063037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8967778932524442245}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac4a9b41eb0907344a9ac80a4bb96eec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8967792360884270035
 GameObject:
   m_ObjectHideFlags: 0
