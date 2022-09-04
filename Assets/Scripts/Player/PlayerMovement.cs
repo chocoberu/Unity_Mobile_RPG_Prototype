@@ -28,15 +28,15 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     // Components
     private Rigidbody playerRigidbody;
     private Animator animator;
-    //private PlayerAttacker playerAttacker;
+    private PlayerAttack playerAttack;
     private PlayerHealth playerHealth;
 
     private void Awake()
     {
         // Component 
-        //playerRigidbody = GetComponent<Rigidbody>();
-        //animator = GetComponent<Animator>();
-        //playerAttacker = GetComponent<PlayerAttacker>();
+        playerRigidbody = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
+        playerAttack = GetComponent<PlayerAttack>();
         playerHealth = GetComponent<PlayerHealth>();
 
         MoveState = PlayerMoveState.Idle;
@@ -58,14 +58,20 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         switch(MoveState)
         {
             case PlayerMoveState.Idle:
+                {
+                    animator.SetFloat("Move", 0.0f);
+                }
                 break;
             case PlayerMoveState.Moving:
-                Rotate();
-                Move();
+                {
+                    Rotate();
+                    Move();
+                    animator.SetFloat("Move", 1.0f);
+                }
                 break;
             case PlayerMoveState.Roll:
                 break;
-        }
+        }        
     }
 
     private void Rotate()

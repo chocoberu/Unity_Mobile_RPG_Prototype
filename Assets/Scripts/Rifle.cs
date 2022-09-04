@@ -10,23 +10,29 @@ public class Rifle : MonoBehaviourPun, IWeaponable
 
     public float AttackDamage { get { return attackDamage; } }
 
-    // Start is called before the first frame update
-    void Start()
+    private void OnEnable()
     {
-        if(false == photonView.IsMine)
+        if (false == photonView.IsMine)
         {
             GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-            foreach(var player in players)
+            foreach (var player in players)
             {
-                if(photonView.CreatorActorNr != player.GetComponent<PhotonView>().CreatorActorNr)
+                if (photonView.CreatorActorNr != player.GetComponent<PhotonView>().CreatorActorNr)
                 {
                     continue;
                 }
 
-                transform.SetParent(player.transform);
+                PlayerAttack playerAttack = player.GetComponent<PlayerAttack>();
+                playerAttack.SetupWeapon(gameObject);
                 break;
             }
         }
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        
     }
 
     // Update is called once per frame
@@ -38,6 +44,8 @@ public class Rifle : MonoBehaviourPun, IWeaponable
     public void StartAttack(PlayerAttack player)
     {
         Debug.Log($"{player.gameObject.name} start attack");
+
+        // 실제 공격 처리는 호스트에 위임
         photonView.RPC("Attack", RpcTarget.MasterClient);
     }
 
@@ -51,4 +59,5 @@ public class Rifle : MonoBehaviourPun, IWeaponable
     {
         Debug.Log("Host Attack called");
     }
+
 }
