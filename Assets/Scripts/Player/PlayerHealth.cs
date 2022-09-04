@@ -5,29 +5,29 @@ using UnityEngine;
 
 public class PlayerHealth : HealthComponent
 {
-
+    private Animator animator;
+    private PlayerMovement playerMovement;
+    private PlayerAttack playerAttack;
 
     private void Awake()
     {
-        
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        animator = GetComponent<Animator>();
+        playerMovement = GetComponent<PlayerMovement>();
+        playerAttack = GetComponent<PlayerAttack>();
     }
 
     protected override void OnEnable()
     {
         base.OnEnable();
 
+        if(null != playerMovement)
+        {
+            playerMovement.enabled = true;
+        }
+        if(null != playerAttack)
+        {
+            playerAttack.enabled = true;
+        }
     }
 
     [PunRPC]
@@ -37,6 +37,7 @@ public class PlayerHealth : HealthComponent
 
     }
 
+    [PunRPC]
     public override void OnDamage(float damage, Vector3 hitPosition, Vector3 hitNormal)
     {
         if(false == Dead)
@@ -52,5 +53,14 @@ public class PlayerHealth : HealthComponent
     {
         base.Die();
 
+        animator.SetTrigger("Die");
+        if (null != playerMovement)
+        {
+            playerMovement.enabled = false;
+        }
+        if (null != playerAttack)
+        {
+            playerAttack.enabled = false;
+        }
     }
 }

@@ -8,7 +8,9 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
 {
     private PlayerHealth playerHealth;
     private Animator animator;
-    IWeaponable weapon;
+    private IWeaponable weapon;
+
+    private GameObject weaponObject;
 
     // 무기가 총인 경우 필요한 transform
     private Transform gunPivot;
@@ -25,22 +27,32 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
         gunPivot = transform.Find("ShooterSocket");
     }
 
+    private void OnEnable()
+    {
+        if(null != weaponObject)
+        {
+            weaponObject.SetActive(true);
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (null != weaponObject)
+        {
+            weaponObject.SetActive(false);
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
         // TODO : 선택한 Weapon을 Instantiate 하도록 수정
         if(true == photonView.IsMine)
         {
-            GameObject Weapon = PhotonNetwork.Instantiate("TestWeapon", transform.position, Quaternion.identity);
+            weaponObject = PhotonNetwork.Instantiate("TestWeapon", transform.position, Quaternion.identity);
 
-            SetupWeapon(Weapon);
+            SetupWeapon(weaponObject);
         }
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
         
     }
 
@@ -56,7 +68,7 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
             Debug.Log("Pressed");
             if(weapon != null)
             {
-                weapon.StartAttack(this);
+                weapon.StartAttack();
             }
         }
         else
@@ -64,7 +76,7 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
             Debug.Log("Released");
             if (weapon != null)
             {
-                weapon.StopAttack(this);
+                weapon.StopAttack();
             }
         }
     }
@@ -88,8 +100,10 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
 
     }
 
-    public void SetupWeapon(GameObject weaponObject)
+    public void SetupWeapon(GameObject newWeapon)
     {
+        weaponObject = newWeapon;
+
         weaponObject.transform.SetParent(gameObject.transform);
         weaponObject.transform.localPosition = gunPivot.localPosition;
         weapon = weaponObject.GetComponent<IWeaponable>();
@@ -99,6 +113,15 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
 
         // TODO : Weapon Type에 다라 다른 Controller를 설정하도록 수정
         animator.runtimeAnimatorController = animatorControllerList[0];
+
+        PhotonAnimatorView animationView = GetComponent<PhotonAnimatorView>();
+
+        for(int index = 0; index < animator.layerCount; index++)
+        {
+            animationView.SetLayerSynchronized(index, PhotonAnimatorView.SynchronizeType.Continuous);
+        }
+
+        animationView.SetParameterSynchronized("Move", PhotonAnimatorView.ParameterType.Float, PhotonAnimatorView.SynchronizeType.Continuous);
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

@@ -2309,8 +2309,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac4a9b41eb0907344a9ac80a4bb96eec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  leftHandMount: {fileID: 0}
-  rightHandMount: {fileID: 0}
   animatorControllerList:
   - {fileID: 9100000, guid: 266854b79df0d6546ba1d8a662e586b9, type: 2}
 --- !u!82 &4128278161921411383

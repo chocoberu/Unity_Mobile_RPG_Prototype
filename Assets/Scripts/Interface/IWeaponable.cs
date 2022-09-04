@@ -4,7 +4,7 @@ using UnityEngine;
 
 public interface IWeaponable
 {
-    void StartAttack(PlayerAttack player);
+    void StartAttack();
 
-    void StopAttack(PlayerAttack player);
+    void StopAttack();
 }

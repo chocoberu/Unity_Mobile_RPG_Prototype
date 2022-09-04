@@ -35,9 +35,9 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
             Health -= damage;
 
             // 클라이언트에 체력 동기화
-            photonView.RPC("ApplyUpdateHealth", RpcTarget.Others, Health, Dead);
+            photonView.RPC("ApplyUpdatedHealth", RpcTarget.Others, Health, Dead);
             // 다른 클라이언트에도 OnDamage 호출
-            photonView.RPC("OnDamage", RpcTarget.Others, damage, hitPosition, Dead);
+            photonView.RPC("OnDamage", RpcTarget.Others, damage, hitPosition, hitNormal);
         }
         if(Health <= 0.0f && false == Dead)
         {
