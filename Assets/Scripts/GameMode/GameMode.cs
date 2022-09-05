@@ -25,18 +25,8 @@ public class GameMode : MonoBehaviourPunCallbacks
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        MatchState = EMatchState.PreMatch;
-        InitializeMatch();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    [SerializeField]
+    private List<PlayerState> playerList = new List<PlayerState>();
 
     protected void ChangeMatchState(EMatchState nextMatchState)
     {
@@ -52,6 +42,36 @@ public class GameMode : MonoBehaviourPunCallbacks
             case EMatchState.PostMatch:
                 EndMatch();
                 break;
+        }
+    }
+
+    public void UpdatePlayerList()
+    {
+        playerList.Clear();
+
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        foreach (var player in players)
+        {
+            PlayerState playerState = player.GetComponent<PlayerState>();
+            if(null == playerState)
+            {
+                continue;
+            }
+
+            AddPlayerState(playerState);
+        }
+
+        if(playerList.Count == PhotonNetwork.CountOfPlayers && MatchState == EMatchState.PreMatch)
+        {
+            MatchState = EMatchState.InProgress;
+        }
+    }
+
+    public void AddPlayerState(PlayerState playerState)
+    {
+        if(false == playerList.Contains(playerState))
+        {
+            playerList.Add(playerState);
         }
     }
 

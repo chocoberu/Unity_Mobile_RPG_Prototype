@@ -72,4 +72,13 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         gameMode = newGameMode;
     }
+
+    public void UpdatePlayerList()
+    {
+        if (null == gameMode)
+        {
+            return;
+        }
+        gameMode.UpdatePlayerList();
+    }
 }

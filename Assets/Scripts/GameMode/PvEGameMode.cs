@@ -31,7 +31,11 @@ public class PvEGameMode : GameMode
 
     public override void StartMatch()
     {
-
+        if(true == PhotonNetwork.IsMasterClient)
+        {
+            Debug.Log("Start Match");
+        }
+        
     }
 
     public override void EndMatch()

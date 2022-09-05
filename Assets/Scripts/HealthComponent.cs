@@ -28,16 +28,22 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     }
 
     [PunRPC]
-    public virtual void OnDamage(float damage, Vector3 hitPosition, Vector3 hitNormal)
+    public virtual void OnDamage(float damage, Vector3 hitPosition, Vector3 hitNormal, int AttackerTeamNumber)
     {
         if(true == PhotonNetwork.IsMasterClient)
         {
+            // 같은 팀의 경우 데미지 처리 X
+            if(GetTeamNumber() == AttackerTeamNumber)
+            {
+                return;
+            }
+
             Health -= damage;
 
             // 클라이언트에 체력 동기화
             photonView.RPC("ApplyUpdatedHealth", RpcTarget.Others, Health, Dead);
             // 다른 클라이언트에도 OnDamage 호출
-            photonView.RPC("OnDamage", RpcTarget.Others, damage, hitPosition, hitNormal);
+            photonView.RPC("OnDamage", RpcTarget.Others, damage, hitPosition, hitNormal, AttackerTeamNumber);
         }
         if(Health <= 0.0f && false == Dead)
         {

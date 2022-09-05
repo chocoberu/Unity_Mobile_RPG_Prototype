@@ -10,12 +10,16 @@ public class PlayerHealth : HealthComponent
     private PlayerAttack playerAttack;
     private PlayerState playerState;
 
+    private ParticleSystem hitEffect;
+
     private void Awake()
     {
         animator = GetComponent<Animator>();
         playerMovement = GetComponent<PlayerMovement>();
         playerAttack = GetComponent<PlayerAttack>();
         playerState = GetComponent<PlayerState>();
+
+        hitEffect = transform.Find("BloodSplatDirectional").GetComponent<ParticleSystem>();
     }
 
     protected override void OnEnable()
@@ -40,14 +44,23 @@ public class PlayerHealth : HealthComponent
     }
 
     [PunRPC]
-    public override void OnDamage(float damage, Vector3 hitPosition, Vector3 hitNormal)
+    public override void OnDamage(float damage, Vector3 hitPosition, Vector3 hitNormal, int AttackerTeamNumber)
     {
-        if(false == Dead)
+        if (GetTeamNumber() == AttackerTeamNumber)
+        {
+            return;
+        }
+
+        if (false == Dead)
         {
 
         }
 
-        base.OnDamage(damage, hitPosition, hitNormal);
+        base.OnDamage(damage, hitPosition, hitNormal, AttackerTeamNumber);
+
+        // 피격 이펙트 플레이
+        hitEffect.transform.rotation = Quaternion.LookRotation(hitNormal);
+        hitEffect.Play();
 
     }
 
