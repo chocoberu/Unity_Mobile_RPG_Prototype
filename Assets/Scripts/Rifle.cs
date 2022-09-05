@@ -37,7 +37,8 @@ public class Rifle : MonoBehaviourPun, IWeaponable
     private float timeBetFire = 0.2f; // 공격 속도
     [SerializeField]
     private float reloadTime = 2.0f; // 재장전 속도
-    
+    private float lastFireTime;
+
     private bool isPressed;
     private bool isReloading;
 
@@ -74,6 +75,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         }
 
         magAmmo = magCapacity;
+        lastFireTime = 0.0f;
         
         isPressed = false;
         isReloading = false;
@@ -119,7 +121,8 @@ public class Rifle : MonoBehaviourPun, IWeaponable
             return;
         }
 
-        if(true == isReloading)
+        // 재장전, 서버 검증용
+        if(true == isReloading || Time.time < lastFireTime + timeBetFire)
         {
             StopAttack();
             return;

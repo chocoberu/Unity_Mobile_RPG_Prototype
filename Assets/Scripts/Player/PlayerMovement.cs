@@ -14,10 +14,11 @@ public enum PlayerMoveState
 
 public class PlayerMovement : MonoBehaviourPun, IPunObservable
 {
-    private PlayerMoveState MoveState { get; set; }
+    public PlayerMoveState MoveState { get; set; }
     
     public float moveSpeed = 5.0f;
     public float rotateSpeed = 180.0f;
+    public float rollSpeed = 10.0f;
 
     private Vector3 moveDirection;
     private Vector3 rollDirection;
@@ -70,6 +71,9 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
                 }
                 break;
             case PlayerMoveState.Roll:
+                {
+                    Roll();
+                }
                 break;
         }        
     }
@@ -91,6 +95,11 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         moveDirection = moveDirection.normalized * moveSpeed * Time.deltaTime;
 
         transform.position += moveDirection;
+    }
+
+    private void Roll()
+    {
+        transform.position += transform.forward * rollSpeed * Time.deltaTime;
     }
 
     // InputSystem Callback
@@ -132,6 +141,33 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         if(false == playerHealth.Dead && MoveState != PlayerMoveState.Roll)
         {
             MoveState = PlayerMoveState.Roll;
+            photonView.RPC("OnRollProcessClient", RpcTarget.All);
+        }
+    }
+
+    private void RollFinish()
+    {
+        photonView.RPC("RollFinishProcessClient", RpcTarget.All);
+    }
+
+    [PunRPC]
+    private void OnRollProcessClient()
+    {
+        animator.SetTrigger("Roll");
+        playerAttack.enabled = false;
+    }
+
+    [PunRPC]
+    private void RollFinishProcessClient()
+    {
+        playerAttack.enabled = true;
+        if (Horizon * Horizon + Vertical * Vertical >= 0.1f)
+        {
+            MoveState = PlayerMoveState.Moving;
+        }
+        else
+        {
+            MoveState = PlayerMoveState.Idle;
         }
     }
 
