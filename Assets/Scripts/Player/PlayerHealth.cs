@@ -8,12 +8,14 @@ public class PlayerHealth : HealthComponent
     private Animator animator;
     private PlayerMovement playerMovement;
     private PlayerAttack playerAttack;
+    private PlayerState playerState;
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
         playerMovement = GetComponent<PlayerMovement>();
         playerAttack = GetComponent<PlayerAttack>();
+        playerState = GetComponent<PlayerState>();
     }
 
     protected override void OnEnable()
@@ -47,6 +49,15 @@ public class PlayerHealth : HealthComponent
 
         base.OnDamage(damage, hitPosition, hitNormal);
 
+    }
+
+    public override int GetTeamNumber()
+    {
+        if(null != playerState)
+        {
+            return playerState.TeamNumber;
+        }
+        return base.GetTeamNumber();
     }
 
     public override void Die()

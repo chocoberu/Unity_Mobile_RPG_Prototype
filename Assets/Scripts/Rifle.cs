@@ -136,7 +136,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         {
             target = hit.collider.GetComponent<HealthComponent>();
 
-            if (null != target)
+            if (null != target && playerHealth.GetTeamNumber() != target.GetTeamNumber())
             {
                 target.OnDamage(AttackDamage, hit.point, hit.normal);
             }

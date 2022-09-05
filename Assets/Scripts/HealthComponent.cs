@@ -45,6 +45,11 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
         }
     }
 
+    public virtual int GetTeamNumber()
+    {
+        return -1;
+    }
+
     [PunRPC]
     public virtual void RestoreHealth(float healthAmount)
     {

@@ -1533,7 +1533,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 79462807}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 45e653bab7fb20e499bda25e1b646fea, type: 3}
   m_Name: 
@@ -11305,7 +11305,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4061233463309036, guid: a325f5ef4df48994282b0920185e0fe5, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4061233463309036, guid: a325f5ef4df48994282b0920185e0fe5, type: 3}
       propertyPath: m_LocalScale.z
@@ -13242,7 +13242,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4072721321604842, guid: c155efb4b01f559438ae63e1747ad7df, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4072721321604842, guid: c155efb4b01f559438ae63e1747ad7df, type: 3}
       propertyPath: m_LocalScale.z
@@ -19290,7 +19290,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4715175458091136, guid: 9852f6f7ea4b79f4fb9c6a5d89ea0afc, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4715175458091136, guid: 9852f6f7ea4b79f4fb9c6a5d89ea0afc, type: 3}
       propertyPath: m_LocalScale.z
@@ -21474,7 +21474,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4496193586606794, guid: 3ea5b278084e09e47bc10735ddca40c5, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4496193586606794, guid: 3ea5b278084e09e47bc10735ddca40c5, type: 3}
       propertyPath: m_LocalScale.z
@@ -22681,7 +22681,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4009105922347784, guid: a603f239fabbe7340b05a53dd8588e06, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4009105922347784, guid: a603f239fabbe7340b05a53dd8588e06, type: 3}
       propertyPath: m_LocalScale.z
@@ -22925,7 +22925,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4715175458091136, guid: 9852f6f7ea4b79f4fb9c6a5d89ea0afc, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.5
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 4715175458091136, guid: 9852f6f7ea4b79f4fb9c6a5d89ea0afc, type: 3}
       propertyPath: m_LocalScale.z
@@ -30100,7 +30100,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4061233463309036, guid: a325f5ef4df48994282b0920185e0fe5, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4061233463309036, guid: a325f5ef4df48994282b0920185e0fe5, type: 3}
       propertyPath: m_LocalScale.z
@@ -30199,7 +30199,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 4
-  m_FollowOffset: {x: 0, y: 10, z: -5}
+  m_FollowOffset: {x: 0, y: 8, z: -8}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -36112,7 +36112,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4166010362633542, guid: facb89cf187493649838350bdbfaccb5, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4166010362633542, guid: facb89cf187493649838350bdbfaccb5, type: 3}
       propertyPath: m_LocalScale.z
