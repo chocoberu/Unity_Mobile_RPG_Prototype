@@ -111,16 +111,16 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
             return;
         }
 
-        if(PlayerMoveState.Roll == MoveState)
-        {
-            return;
-        }
-
         Vector2 movement = value.Get<Vector2>();
         Horizon = movement.x;
         Vertical = movement.y;
 
-        if(movement.sqrMagnitude > 0.0f)
+        if (PlayerMoveState.Roll == MoveState)
+        {
+            return;
+        }
+
+        if (movement.sqrMagnitude > 0.0f)
         {
             MoveState = PlayerMoveState.Moving;
         }

@@ -58,7 +58,7 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
 
     private void OnAttack(InputValue value)
     {
-        if(false == photonView.IsMine)
+        if(false == photonView.IsMine || false == enabled)
         {
             return;
         }
