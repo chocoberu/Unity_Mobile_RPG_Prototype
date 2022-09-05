@@ -13,22 +13,31 @@ public class Rifle : MonoBehaviourPun, IWeaponable
 
     private PlayerAttack playerAttack;
     private Animator playerAnimator;
+    private PlayerHealth playerHealth;
+
     private LineRenderer bulletLineRenderer;
     private AudioSource audioPlayer;
-    private PlayerHealth playerHealth;
+    
     private Transform fireTransform;
     public LayerMask targetLayer;
     //private PlayerState playerState;
 
+    // 총기 파티클
+    public ParticleSystem muzzleFlashEffect;
+    public ParticleSystem shellEjectEffect;
+
+    // 총기 효과음
     public AudioClip shotClip;
     public AudioClip reloadClip;
 
     public int magAmmo; // 현재 탄창의 탄알 수 
     public int magCapacity = 10; // 탄창 용량
 
-    public float timeBetFire = 0.15f; // 공격 속도
-    public float reloadTime = 2.0f; // 재장전 속도
-    private float lastFireTime;
+    [SerializeField]
+    private float timeBetFire = 0.2f; // 공격 속도
+    [SerializeField]
+    private float reloadTime = 2.0f; // 재장전 속도
+    
     private bool isPressed;
     private bool isReloading;
 
@@ -65,21 +74,9 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         }
 
         magAmmo = magCapacity;
-        lastFireTime = 0.0f;
+        
         isPressed = false;
         isReloading = false;
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 
     public void StartAttack()
@@ -122,6 +119,12 @@ public class Rifle : MonoBehaviourPun, IWeaponable
             return;
         }
 
+        if(true == isReloading)
+        {
+            StopAttack();
+            return;
+        }
+
         RaycastHit hit;
         Vector3 hitPosition = Vector3.zero;
 
@@ -159,8 +162,8 @@ public class Rifle : MonoBehaviourPun, IWeaponable
 
     private IEnumerator ShotEffect(Vector3 hitPosition)
     {
-        //muzzleFlashEffect.Play();
-        //shellEjectEffect.Play();
+        muzzleFlashEffect.Play();
+        shellEjectEffect.Play();
 
         audioPlayer.PlayOneShot(shotClip);
 
