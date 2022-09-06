@@ -11,6 +11,8 @@ public class GameMode : MonoBehaviourPunCallbacks
         InProgress,
         PostMatch
     }
+    
+    [SerializeField]
     private EMatchState matchState;
     public EMatchState MatchState
     {
@@ -18,9 +20,10 @@ public class GameMode : MonoBehaviourPunCallbacks
         {
             return matchState;
         }
-        set
+        protected set
         {
             matchState = value;
+            Debug.Log($"Current Match State : {matchState.ToString()}");
             ChangeMatchState(matchState);
         }
     }
@@ -61,7 +64,7 @@ public class GameMode : MonoBehaviourPunCallbacks
             AddPlayerState(playerState);
         }
 
-        if(playerList.Count == PhotonNetwork.CountOfPlayers && MatchState == EMatchState.PreMatch)
+        if (playerList.Count == PhotonNetwork.CountOfPlayers && MatchState == EMatchState.PreMatch)
         {
             MatchState = EMatchState.InProgress;
         }
@@ -89,4 +92,5 @@ public class GameMode : MonoBehaviourPunCallbacks
     {
 
     }
+
 }

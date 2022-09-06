@@ -24,9 +24,23 @@ public class PvEGameMode : GameMode
             GameManager.Instance.SetGameMode(this);
         }
 
-        // TEST CODE
-        Debug.Log("Instantiate Character");
-        GameObject player = PhotonNetwork.Instantiate("TestPlayer", new Vector3(0.0f, 2.0f, 0.0f), Quaternion.identity);
+        // 알맞는 PlayerStart를 찾아서 Player Spawn
+        GameObject[] playerStartList = GameObject.FindGameObjectsWithTag("BluePlayerStart");
+        string playerStartName = $"BluePlayer{PhotonNetwork.LocalPlayer.ActorNumber}";
+
+        Vector3 playerStartPosition = Vector3.up;
+        foreach(var playerStart in playerStartList)
+        {
+            if(true == playerStartName.Equals(playerStart.name))
+            {
+                playerStartPosition = playerStart.transform.position;
+                break;
+            }
+        }
+
+        GameObject player = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, Quaternion.identity);
+
+
     }
 
     public override void StartMatch()
