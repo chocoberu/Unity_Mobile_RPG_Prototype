@@ -53,14 +53,12 @@ public class PlayerHealth : HealthComponent
 
         if (false == Dead)
         {
-
+            // 피격 이펙트 플레이
+            hitEffect.transform.rotation = Quaternion.LookRotation(hitNormal);
+            hitEffect.Play();
         }
 
         base.OnDamage(damage, hitPosition, hitNormal, AttackerTeamNumber);
-
-        // 피격 이펙트 플레이
-        hitEffect.transform.rotation = Quaternion.LookRotation(hitNormal);
-        hitEffect.Play();
 
     }
 
