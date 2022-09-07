@@ -24,6 +24,11 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
     private Renderer zombieRenderer;
     private Rigidbody zombieRigidbody;
 
+    private ZombieBossState state;
+    public ZombieBossState State { get; }
+
+    private FSM<ZombieBossState> fsm;
+
     private void Awake()
     {
         targetLayer = LayerMask.NameToLayer("Character");
@@ -33,18 +38,30 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
         pathFinder = GetComponent<NavMeshAgent>();
         zombieRenderer = GetComponent<Renderer>();
         zombieRigidbody = GetComponent<Rigidbody>();
+
+        fsm = new FSM<ZombieBossState>(this);
     }
 
     // Start is called before the first frame update
     void Start()
     {
-
+        fsm.StartFSM(ZombieBossState.Idle);
     }
 
     // Update is called once per frame
     void Update()
     {
+        fsm.OnUpdate();
+    }
 
+    public void Idle_Enter()
+    {
+        Debug.Log("Idle Enter");
+    }
+
+    public void Idle_Update()
+    {
+        Debug.Log("Idle update!");
     }
 
     public virtual void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
