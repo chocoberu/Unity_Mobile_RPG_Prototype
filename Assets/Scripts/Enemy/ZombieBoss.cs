@@ -83,11 +83,6 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
         DetectTarget();
     }
 
-    public void Idle_Exit()
-    {
-
-    }
-
     private void DetectTarget()
     {
         if(false == PhotonNetwork.IsMasterClient)
@@ -124,16 +119,35 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
         {
             photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieBossState.Chasing);
         }
+        else
+        {
+            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieBossState.Patrol);
+        }
     }
 
     public void Patrol_Enter()
     {
         photonView.RPC("SetMove", RpcTarget.All, true);
+        
+        if(true == PhotonNetwork.IsMasterClient)
+        {
+            pathFinder.isStopped = false;
+            Vector3 randomPatrolPos = transform.position + Random.insideUnitSphere * 5.0f;
+            pathFinder.SetDestination(randomPatrolPos);
+        }
     }
 
     public void Patrol_Update()
     {
+        MoveToTarget();
 
+        if(Vector3.Distance(pathFinder.destination, transform.position) <= 1.0f)
+        {
+            pathFinder.isStopped = true;
+
+            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieBossState.Idle);
+            //fsm.Transition(ZombieBossState.Idle);
+        }
     }
 
     public void Patrol_Exit()
@@ -141,33 +155,12 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
         photonView.RPC("SetMove", RpcTarget.All, false);
     }
 
+    [PunRPC]
     private void MoveToTarget()
     {
-        if(false == PhotonNetwork.IsMasterClient)
-        {
-            transform.position = Vector3.Lerp(transform.position, serializedPosition, Time.deltaTime * pathFinder.speed);
-            transform.rotation = Quaternion.Slerp(transform.rotation, serializedRotation, Time.deltaTime * rotSpeed);
-            return;
-        }
-
-        if(null == target)
-        {
-            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieBossState.Idle);
-            return;
-        }
-
-        pathFinder.SetDestination(target.transform.position);
-
-        // 공격 범위 내에 들었을 때
-        if(Vector3.Distance(target.transform.position, transform.position) <= attackRange + 1.0f)
-        {
-            pathFinder.isStopped = true;
-
-            Quaternion rot = Quaternion.LookRotation(target.transform.position - transform.position);
-            transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotSpeed * Time.deltaTime);
-
-            fsm.Transition(ZombieBossState.Attack);
-        }
+        transform.position = Vector3.Lerp(transform.position, serializedPosition, Time.deltaTime * pathFinder.speed);
+        transform.rotation = Quaternion.Slerp(transform.rotation, serializedRotation, Time.deltaTime * rotSpeed);
+        return;
     }
 
     public void Chasing_Enter()
@@ -180,7 +173,28 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
 
     public void Chasing_Update()
     {
+        if(true == PhotonNetwork.IsMasterClient)
+        {
+            if(null == target)
+            {
+                photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieBossState.Idle);
+                return;
+            }
+            pathFinder.SetDestination(target.transform.position);
+        }
+        
         MoveToTarget();
+        
+        // 공격 범위 내에 들었을 때
+        if (Vector3.Distance(pathFinder.destination, transform.position) <= attackRange + 1.0f)
+        {
+            pathFinder.isStopped = true;
+
+            Quaternion rot = Quaternion.LookRotation(target.transform.position - transform.position);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotSpeed * Time.deltaTime);
+
+            fsm.Transition(ZombieBossState.Attack);
+        }
     }
 
     public void Chasing_Exit()
@@ -202,6 +216,7 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
     [PunRPC]
     private void TransitionState(int nextState)
     {
+        Debug.Log($"Transition State : {(ZombieBossState)nextState}");
         fsm.Transition((ZombieBossState)nextState);
     }
 
@@ -217,8 +232,13 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
         animator.SetTrigger("NormalAttack");
     }
 
-    private void HitCheck()
+    private void NormalAttackHitCheck()
     {
+        if(false == PhotonNetwork.IsMasterClient)
+        {
+            return;
+        }
+
 
     }
 
