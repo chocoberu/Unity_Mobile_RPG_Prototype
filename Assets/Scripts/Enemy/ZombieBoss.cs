@@ -13,21 +13,8 @@ public enum ZombieBossState
     Dead
 }
 
-public class ZombieBoss : MonoBehaviourPun, IPunObservable
-{
-    private LayerMask targetLayer;
-
-    // 컴포넌트 관련
-    private NavMeshAgent pathFinder;
-    private AudioSource audioSource;
-    private Animator animator;
-    private Renderer zombieRenderer;
-    private Rigidbody zombieRigidbody;
-    private ZombieHealth zombieHealth;
-
-    private ZombieBossState state;
-    public ZombieBossState State { get; }
-
+public class ZombieBoss : ZombieBase
+{ 
     private FSM<ZombieBossState> fsm;
 
     private HealthComponent target;
@@ -39,10 +26,6 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
     private float detectRange = 20.0f;
 
     private float rotSpeed = 30.0f;
-
-    // 동기화 관련
-    private Vector3 serializedPosition;
-    private Quaternion serializedRotation;
 
     private void Awake()
     {
@@ -75,7 +58,7 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
 
     public void Idle_Enter()
     {
-        state = ZombieBossState.Idle; 
+        pathFinder.isStopped = true; 
     }
 
     public void Idle_Update()
@@ -146,7 +129,6 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
             pathFinder.isStopped = true;
 
             photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieBossState.Idle);
-            //fsm.Transition(ZombieBossState.Idle);
         }
     }
 
@@ -155,12 +137,14 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
         photonView.RPC("SetMove", RpcTarget.All, false);
     }
 
-    [PunRPC]
     private void MoveToTarget()
     {
-        transform.position = Vector3.Lerp(transform.position, serializedPosition, Time.deltaTime * pathFinder.speed);
-        transform.rotation = Quaternion.Slerp(transform.rotation, serializedRotation, Time.deltaTime * rotSpeed);
-        return;
+        if(false == PhotonNetwork.IsMasterClient)
+        {
+            transform.position = Vector3.Lerp(transform.position, serializedPosition, Time.deltaTime * pathFinder.speed);
+            transform.rotation = Quaternion.Slerp(transform.rotation, serializedRotation, Time.deltaTime * rotSpeed);
+            return;
+        }
     }
 
     public void Chasing_Enter()
@@ -239,26 +223,22 @@ public class ZombieBoss : MonoBehaviourPun, IPunObservable
             return;
         }
 
-
+        // Overlap을 통해 충돌 검사
+        Collider[] colliders = Physics.OverlapCapsule(transform.position, transform.position + transform.forward * attackRange, 1.0f, targetLayer);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            HealthComponent entity = colliders[i].GetComponent<HealthComponent>();
+            if (null != entity && false == entity.Dead && this != entity && false == zombieHealth.Dead)
+            {
+                entity.OnDamage(damage, colliders[i].transform.position, colliders[i].transform.up, zombieHealth.GetTeamNumber());
+                break;
+            }
+        }
     }
 
     private void OnDead()
     {
         fsm.Transition(ZombieBossState.Dead);
-    }
-
-    public virtual void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-        if(true == stream.IsWriting)
-        {
-            stream.SendNext(transform.position);
-            stream.SendNext(transform.rotation);
-        }
-        else
-        {
-            serializedPosition = (Vector3)stream.ReceiveNext();
-            serializedRotation = (Quaternion)stream.ReceiveNext();
-        }
     }
 
 }

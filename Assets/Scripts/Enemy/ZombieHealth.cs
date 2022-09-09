@@ -11,6 +11,7 @@ public class ZombieHealth : HealthComponent
     private NavMeshAgent pathFinder;
     private Renderer enemyRenderer;
     private Rigidbody enemyRigidbody;
+    private ZombieBase zombieComponent;
 
     // È¿°úÀ½
     public AudioClip deathSound;
@@ -26,6 +27,7 @@ public class ZombieHealth : HealthComponent
         pathFinder = GetComponent<NavMeshAgent>();
         enemyRenderer = GetComponent<Renderer>();
         enemyRigidbody = GetComponent<Rigidbody>();
+        zombieComponent = GetComponent<ZombieBase>();
 
         hitEffect = transform.Find("BloodSplatDirectional").GetComponent<ParticleSystem>();
     }
