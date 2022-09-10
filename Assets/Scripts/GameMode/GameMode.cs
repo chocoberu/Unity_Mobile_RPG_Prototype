@@ -29,7 +29,7 @@ public class GameMode : MonoBehaviourPunCallbacks
     }
 
     [SerializeField]
-    private List<PlayerState> playerList = new List<PlayerState>();
+    protected List<PlayerState> playerList = new List<PlayerState>();
 
     protected void ChangeMatchState(EMatchState nextMatchState)
     {
@@ -48,7 +48,7 @@ public class GameMode : MonoBehaviourPunCallbacks
         }
     }
 
-    public void UpdatePlayerList()
+    public virtual void UpdatePlayerList()
     {
         playerList.Clear();
 

@@ -1,4 +1,5 @@
 using Photon.Pun;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,10 +8,44 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
 {
     private int teamNumber = 0;
     public int TeamNumber { get { return teamNumber; } }
-    
-    public int KillScore { get; set; }
-    public int DeathScore { get; set; }
 
+    public Vector3 StartPosition { get; set; }
+
+    private int killScore = 0;
+    private int deathScore = 0;
+    
+    public int KillScore 
+    { 
+        get { return killScore; }
+        set 
+        {
+            if(killScore >= value)
+            {
+                return;
+            }
+
+            killScore = value;
+        }
+    }
+    public int DeathScore
+    {
+        get { return deathScore; }
+        set
+        {
+            if(deathScore >= value )
+            {
+                return;   
+            }
+
+            deathScore = value;
+            if (null != OnDeath)
+            {
+                OnDeath.Invoke(gameObject);
+            }
+        }
+    }
+    public event Action<GameObject> OnDeath;
+    
     private void OnEnable()
     {
         GameManager.Instance.UpdatePlayerList();
@@ -18,19 +53,7 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
 
     private void OnDisable()
     {
-        
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        GameManager.Instance.UpdatePlayerList();
     }
 
     [PunRPC]

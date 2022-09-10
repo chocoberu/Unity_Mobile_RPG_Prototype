@@ -153,7 +153,7 @@ public class ZombieBoss : ZombieBase
 
     public void Chasing_Enter()
     {
-        Debug.Log("Chasing enter");
+        //Debug.Log("Chasing enter");
         pathFinder.isStopped = false;
 
         photonView.RPC("SetMove", RpcTarget.All, true);
@@ -172,6 +172,11 @@ public class ZombieBoss : ZombieBase
         }
         
         MoveToTarget();
+
+        if (false == PhotonNetwork.IsMasterClient)
+        {
+            return;
+        }
         
         // 공격 범위 내에 들었을 때
         if (Vector3.Distance(pathFinder.destination, transform.position) <= attackRange + 1.0f)

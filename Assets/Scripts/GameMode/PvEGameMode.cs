@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class PvEGameMode : GameMode
 {
+    [SerializeField]
+    private float respawnTime = 3.0f;
     // Start is called before the first frame update
     void Start()
     {
@@ -15,6 +17,17 @@ public class PvEGameMode : GameMode
     void Update()
     {
         
+    }
+
+    public override void UpdatePlayerList()
+    {
+        base.UpdatePlayerList();
+
+        for(int i = 0; i < playerList.Count; i++)
+        {
+            playerList[i].OnDeath -= RestartPlayer;
+            playerList[i].OnDeath += RestartPlayer;
+        }
     }
 
     public override void InitializeMatch()
@@ -39,15 +52,14 @@ public class PvEGameMode : GameMode
         }
 
         GameObject player = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, Quaternion.identity);
-
-
+        player.GetComponent<PlayerState>().StartPosition = playerStartPosition;
     }
 
     public override void StartMatch()
     {
-        if(true == PhotonNetwork.IsMasterClient)
+        if(false == PhotonNetwork.IsMasterClient)
         {
-            Debug.Log("Start Match");
+            return;
         }
         
     }
@@ -55,5 +67,20 @@ public class PvEGameMode : GameMode
     public override void EndMatch()
     {
 
+    }
+
+    private void RestartPlayer(GameObject player)
+    {
+        StartCoroutine(CoRestartPlayer(player));
+    }
+
+    IEnumerator CoRestartPlayer(GameObject player)
+    {
+        yield return new WaitForSeconds(respawnTime);
+
+        Debug.Log("Restart Player");
+        player.transform.position = player.GetComponent<PlayerState>().StartPosition;
+        player.SetActive(false);
+        player.SetActive(true);
     }
 }

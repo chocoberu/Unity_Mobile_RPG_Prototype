@@ -47,6 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   matchState: 0
   playerList: []
+  respawnTime: 3
 --- !u!114 &-7907149687247862928
 MonoBehaviour:
   m_ObjectHideFlags: 0

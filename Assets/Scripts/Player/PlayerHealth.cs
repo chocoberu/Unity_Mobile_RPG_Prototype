@@ -37,7 +37,7 @@ public class PlayerHealth : HealthComponent
             playerAttack.enabled = true;
         }
 
-        hpBarWidget.SetupNickname(PhotonNetwork.NickName);
+        hpBarWidget.SetupNickname(photonView.Controller.NickName);
     }
 
     [PunRPC]
@@ -88,5 +88,7 @@ public class PlayerHealth : HealthComponent
         {
             playerAttack.enabled = false;
         }
+        
+        playerState.DeathScore++;
     }
 }

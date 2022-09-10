@@ -20,8 +20,11 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     {
         Dead = false;
         Health = defaultHealth;
-
-        hpBarWidget = GetComponentInChildren<HPBarWidget>();
+        
+        if(null == hpBarWidget)
+        {
+            hpBarWidget = GetComponentInChildren<HPBarWidget>();
+        }
         hpBarWidget.gameObject.SetActive(true); 
         hpBarWidget.SetupHPBarWidget(defaultHealth, Health);
     }

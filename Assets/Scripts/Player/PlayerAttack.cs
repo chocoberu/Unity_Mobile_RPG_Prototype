@@ -33,6 +33,11 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
         {
             weaponObject.SetActive(true);
         }
+
+        if(null != weapon)
+        {
+            weapon.SetWeaponVisible(true);
+        }
     }
 
     private void OnDisable()
@@ -40,6 +45,11 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
         if (null != weaponObject)
         {
             weaponObject.SetActive(false);
+        }
+
+        if(null != weapon)
+        {
+            weapon.SetWeaponVisible(false);
         }
     }
 

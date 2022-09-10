@@ -42,11 +42,10 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
 
         MoveState = PlayerMoveState.Idle;
     }
-    
-    // Start is called before the first frame update
-    void Start()
+
+    private void OnEnable()
     {
-        
+        MoveState = PlayerMoveState.Idle;
     }
 
     private void FixedUpdate()
