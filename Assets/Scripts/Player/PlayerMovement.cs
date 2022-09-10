@@ -154,13 +154,13 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     private void OnRollProcessClient()
     {
         animator.SetTrigger("Roll");
-        playerAttack.enabled = false;
+        playerAttack.SetWeaponVisible(false);
     }
 
     [PunRPC]
     private void RollFinishProcessClient()
     {
-        playerAttack.enabled = true;
+        playerAttack.SetWeaponVisible(true);
         if (Horizon * Horizon + Vertical * Vertical >= 0.1f)
         {
             MoveState = PlayerMoveState.Moving;

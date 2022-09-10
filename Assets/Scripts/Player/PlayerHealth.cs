@@ -12,8 +12,10 @@ public class PlayerHealth : HealthComponent
 
     private ParticleSystem hitEffect;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
         animator = GetComponent<Animator>();
         playerMovement = GetComponent<PlayerMovement>();
         playerAttack = GetComponent<PlayerAttack>();
@@ -34,6 +36,8 @@ public class PlayerHealth : HealthComponent
         {
             playerAttack.enabled = true;
         }
+
+        hpBarWidget.SetupNickname(PhotonNetwork.NickName);
     }
 
     [PunRPC]

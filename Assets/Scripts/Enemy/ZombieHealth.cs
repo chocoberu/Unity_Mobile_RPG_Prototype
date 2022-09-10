@@ -1,4 +1,5 @@
 using Photon.Pun;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,8 +21,12 @@ public class ZombieHealth : HealthComponent
     // ¿Ã∆Â∆Æ
     private ParticleSystem hitEffect;
 
-    private void Awake()
+    public event Action OnUpdate;
+
+    protected override void Awake()
     {
+        base.Awake();
+
         animator = GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>();
         pathFinder = GetComponent<NavMeshAgent>();
@@ -30,18 +35,6 @@ public class ZombieHealth : HealthComponent
         zombieComponent = GetComponent<ZombieBase>();
 
         hitEffect = transform.Find("BloodSplatDirectional").GetComponent<ParticleSystem>();
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 
     [PunRPC]
@@ -56,6 +49,11 @@ public class ZombieHealth : HealthComponent
         }
         
         base.OnDamage(damage, hitPosition, hitNormal, AttackerTeamNumber);
+
+        if(null != OnUpdate)
+        {
+            OnUpdate.Invoke();
+        }    
     }
 
     public override void Die()

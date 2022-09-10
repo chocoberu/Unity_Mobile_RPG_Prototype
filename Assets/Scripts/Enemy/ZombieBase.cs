@@ -19,23 +19,18 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
     protected Vector3 serializedPosition;
     protected Quaternion serializedRotation;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         targetLayer = LayerMask.NameToLayer("Character");
 
         animator = GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>();
         pathFinder = GetComponent<NavMeshAgent>();
-        zombieRenderer = GetComponent<Renderer>();
+        zombieRenderer = GetComponentInChildren<Renderer>();
         zombieRigidbody = GetComponent<Rigidbody>();
         zombieHealth = GetComponent<ZombieHealth>();
 
         pathFinder.isStopped = true;
-
-    }
-
-    public virtual void Berserk()
-    {
 
     }
 

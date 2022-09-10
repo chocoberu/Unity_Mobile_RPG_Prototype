@@ -9,6 +9,8 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     [SerializeReference]
     private float defaultHealth = 100.0f;
 
+    protected HPBarWidget hpBarWidget;
+
     public float Health { get; protected set; }
     public float DefaultHealth { get { return defaultHealth; } }
     public bool Dead { get; protected set; }
@@ -18,6 +20,15 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     {
         Dead = false;
         Health = defaultHealth;
+
+        hpBarWidget = GetComponentInChildren<HPBarWidget>();
+        hpBarWidget.gameObject.SetActive(true); 
+        hpBarWidget.SetupHPBarWidget(defaultHealth, Health);
+    }
+
+    protected virtual void Awake()
+    {
+        
     }
 
     [PunRPC]
@@ -25,6 +36,11 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     {
         Health = newHealth;
         Dead = newDead;
+
+        if (null != hpBarWidget)
+        {
+            hpBarWidget.UpdateHP(Health);
+        }
     }
 
     [PunRPC]
@@ -39,6 +55,10 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
             }
 
             Health -= damage;
+            if (null != hpBarWidget)
+            {
+                hpBarWidget.UpdateHP(Health);
+            }
 
             // 클라이언트에 체력 동기화
             photonView.RPC("ApplyUpdatedHealth", RpcTarget.Others, Health, Dead);
@@ -68,7 +88,11 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
         if(true == PhotonNetwork.IsMasterClient)
         {
             Health = Mathf.Clamp(Health + healthAmount, 0.0f, defaultHealth);
-
+            if(null != hpBarWidget)
+            {
+                hpBarWidget.UpdateHP(Health);
+            }
+            
             photonView.RPC("ApplyUpdatedHealth", RpcTarget.Others, Health, Dead);
             photonView.RPC("RestoreHealth", RpcTarget.Others, healthAmount);
         }
@@ -76,11 +100,16 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
 
     public virtual void Die()
     {
-        if(null != OnDeath)
+        if (null != OnDeath)
         {
             OnDeath.Invoke();
         }
 
         Dead = true;
+
+        if (null != hpBarWidget)
+        {
+            hpBarWidget.gameObject.SetActive(false);
+        }
     }
 }

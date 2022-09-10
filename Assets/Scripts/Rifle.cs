@@ -1,6 +1,7 @@
 using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Rifle : MonoBehaviourPun, IWeaponable
@@ -17,7 +18,8 @@ public class Rifle : MonoBehaviourPun, IWeaponable
 
     private LineRenderer bulletLineRenderer;
     private AudioSource audioPlayer;
-    
+    private List<MeshRenderer> meshRendererList = new List<MeshRenderer>();
+
     private Transform fireTransform;
     public LayerMask targetLayer;
     //private PlayerState playerState;
@@ -46,6 +48,9 @@ public class Rifle : MonoBehaviourPun, IWeaponable
     {
         bulletLineRenderer = GetComponent<LineRenderer>();
         audioPlayer = GetComponent<AudioSource>();
+        
+        meshRendererList = GetComponentsInChildren<MeshRenderer>().ToList();
+
         fireTransform = transform.Find("FireTransform");
         
         // 사용할 점을 2개로 설정
@@ -92,6 +97,14 @@ public class Rifle : MonoBehaviourPun, IWeaponable
 
         isPressed = true;
         StartCoroutine(Shot());
+    }
+
+    public void SetWeaponVisible(bool value)
+    {
+        for (int i = 0; i < meshRendererList.Count; i++)
+        {
+            meshRendererList[i].enabled = value;
+        }
     }
 
     public void StopAttack()

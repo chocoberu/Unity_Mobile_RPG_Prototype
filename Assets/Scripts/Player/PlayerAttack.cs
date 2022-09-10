@@ -124,6 +124,11 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
         animationView.SetParameterSynchronized("Move", PhotonAnimatorView.ParameterType.Float, PhotonAnimatorView.SynchronizeType.Continuous);
     }
 
+    public void SetWeaponVisible(bool value)
+    {
+        weapon.SetWeaponVisible(value);
+    }
+
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (true == stream.IsWriting)

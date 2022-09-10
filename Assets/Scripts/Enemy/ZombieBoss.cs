@@ -13,6 +13,12 @@ public enum ZombieBossState
     Dead
 }
 
+enum ZombieBossPhase
+{
+    Phase1 = 0,
+    Phase2
+}
+
 public class ZombieBoss : ZombieBase
 { 
     private FSM<ZombieBossState> fsm;
@@ -20,28 +26,26 @@ public class ZombieBoss : ZombieBase
     private HealthComponent target;
 
     // 공격 관련
+    private ZombieBossPhase bossPhase;
     private float damage = 30.0f;
     private float timeBetAttack = 5.0f;
     private float attackRange = 2.0f;
     private float detectRange = 20.0f;
+    private float phase2Percent = 0.5f;
 
     private float rotSpeed = 30.0f;
 
-    private void Awake()
+    protected override void Awake()
     {
-        targetLayer = LayerMask.NameToLayer("Character");
-
-        animator = GetComponent<Animator>();
-        audioSource = GetComponent<AudioSource>();
-        pathFinder = GetComponent<NavMeshAgent>();
-        zombieRenderer = GetComponent<Renderer>();
-        zombieRigidbody = GetComponent<Rigidbody>();
-        zombieHealth = GetComponent<ZombieHealth>();
+        base.Awake();
 
         fsm = new FSM<ZombieBossState>(this);
         pathFinder.isStopped = true;
 
         zombieHealth.OnDeath += OnDead;
+        zombieHealth.OnUpdate += UpdatePhase;
+
+        bossPhase = ZombieBossPhase.Phase1;
     }
 
     // Start is called before the first frame update
@@ -234,6 +238,26 @@ public class ZombieBoss : ZombieBase
                 break;
             }
         }
+    }
+
+    private void UpdatePhase()
+    {
+        if(zombieHealth.Health / zombieHealth.DefaultHealth <= phase2Percent && bossPhase == ZombieBossPhase.Phase1)
+        {
+            photonView.RPC("Berserk", RpcTarget.All);
+        }
+    }
+
+    [PunRPC]
+    private void Berserk()
+    {
+        Debug.Log("Boss Phase 2 Enter");
+
+        bossPhase = ZombieBossPhase.Phase2;
+        damage *= 1.5f;
+
+        pathFinder.speed = 5.5f;
+        zombieRenderer.material.color = Color.red;
     }
 
     private void OnDead()

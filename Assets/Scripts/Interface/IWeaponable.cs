@@ -7,4 +7,6 @@ public interface IWeaponable
     void StartAttack();
 
     void StopAttack();
+
+    void SetWeaponVisible(bool value);
 }
