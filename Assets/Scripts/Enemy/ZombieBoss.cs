@@ -51,7 +51,7 @@ public class ZombieBoss : ZombieBase
     // Start is called before the first frame update
     void Start()
     {
-        fsm.StartFSM(ZombieBossState.Idle);
+        //fsm.StartFSM(ZombieBossState.Idle);
     }
 
     // Update is called once per frame
@@ -126,9 +126,13 @@ public class ZombieBoss : ZombieBase
 
     public void Patrol_Update()
     {
-        MoveToTarget();
+        if (false == PhotonNetwork.IsMasterClient)
+        {
+            MoveToTarget();
+            return;
+        }
 
-        if(Vector3.Distance(pathFinder.destination, transform.position) <= 1.0f)
+        if (Vector3.Distance(pathFinder.destination, transform.position) <= 1.0f)
         {
             pathFinder.isStopped = true;
 
@@ -145,9 +149,9 @@ public class ZombieBoss : ZombieBase
     {
         if(false == PhotonNetwork.IsMasterClient)
         {
+            //Debug.Log("ZombieBoss.MoveToTarget() called");
             transform.position = Vector3.Lerp(transform.position, serializedPosition, Time.deltaTime * pathFinder.speed);
             transform.rotation = Quaternion.Slerp(transform.rotation, serializedRotation, Time.deltaTime * rotSpeed);
-            return;
         }
     }
 
@@ -204,6 +208,12 @@ public class ZombieBoss : ZombieBase
     public void Dead_Enter()
     {
         pathFinder.isStopped = true;
+    }
+
+    [PunRPC]
+    public void StartFSM()
+    {
+        fsm.StartFSM(ZombieBossState.Idle);
     }
 
     [PunRPC]

@@ -358,7 +358,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
                 {
                     GameInstance.Instance.GameType = GameInstance.EGameType.PvP;
                 }
-                
+
+                PhotonNetwork.CurrentRoom.IsOpen = false;
                 photonView.RPC("StartGame", RpcTarget.All);
             }
         }

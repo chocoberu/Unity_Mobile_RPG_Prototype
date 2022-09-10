@@ -24,16 +24,17 @@ public class GameMode : MonoBehaviourPunCallbacks
         {
             matchState = value;
             Debug.Log($"Current Match State : {matchState.ToString()}");
-            ChangeMatchState(matchState);
+            ChangeMatchState((int)matchState);
         }
     }
 
     [SerializeField]
     protected List<PlayerState> playerList = new List<PlayerState>();
 
-    protected void ChangeMatchState(EMatchState nextMatchState)
+    [PunRPC]
+    protected void ChangeMatchState(int nextMatchState)
     {
-        switch(nextMatchState)
+        switch((EMatchState)nextMatchState)
         {
             case EMatchState.PreMatch:
                 InitializeMatch();
@@ -62,11 +63,6 @@ public class GameMode : MonoBehaviourPunCallbacks
             }
 
             AddPlayerState(playerState);
-        }
-
-        if (playerList.Count == PhotonNetwork.CountOfPlayers && MatchState == EMatchState.PreMatch)
-        {
-            MatchState = EMatchState.InProgress;
         }
     }
 

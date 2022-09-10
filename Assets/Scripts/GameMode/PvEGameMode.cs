@@ -7,6 +7,10 @@ public class PvEGameMode : GameMode
 {
     [SerializeField]
     private float respawnTime = 3.0f;
+
+    private GameObject playerObject;
+    private ZombieBoss zombieBoss;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -16,7 +20,11 @@ public class PvEGameMode : GameMode
     // Update is called once per frame
     void Update()
     {
-        
+        if (MatchState == EMatchState.PreMatch && playerList.Count == PhotonNetwork.CountOfPlayers && null != zombieBoss)
+        {
+            MatchState = EMatchState.InProgress;
+            photonView.RPC("ChangeMatchState", RpcTarget.Others, (int)MatchState);
+        }
     }
 
     public override void UpdatePlayerList()
@@ -51,17 +59,27 @@ public class PvEGameMode : GameMode
             }
         }
 
-        GameObject player = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, Quaternion.identity);
-        player.GetComponent<PlayerState>().StartPosition = playerStartPosition;
+        playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, Quaternion.identity);
+        playerObject.GetComponent<PlayerState>().StartPosition = playerStartPosition;
+        
+        if(true == PhotonNetwork.IsMasterClient)
+        {
+            GameObject boss = PhotonNetwork.Instantiate("ZombieBoss", new Vector3(0.0f, 0.5f, 0.0f), Quaternion.identity);
+            zombieBoss = boss.GetComponentInChildren<ZombieBoss>();
+            zombieBoss.GetComponent<ZombieHealth>().OnDeath += OnBossDead;
+        }
     }
 
     public override void StartMatch()
     {
-        if(false == PhotonNetwork.IsMasterClient)
+        Debug.Log("Start Match");
+
+        if (false == PhotonNetwork.IsMasterClient)
         {
             return;
         }
-        
+
+        zombieBoss.photonView.RPC("StartFSM", RpcTarget.All);
     }
 
     public override void EndMatch()
@@ -78,9 +96,18 @@ public class PvEGameMode : GameMode
     {
         yield return new WaitForSeconds(respawnTime);
 
-        Debug.Log("Restart Player");
-        player.transform.position = player.GetComponent<PlayerState>().StartPosition;
-        player.SetActive(false);
-        player.SetActive(true);
+        if(null != player)
+        {
+            Debug.Log("Restart Player");
+            player.transform.position = player.GetComponent<PlayerState>().StartPosition;
+            player.SetActive(false);
+            player.SetActive(true);
+        }
+    }
+
+    private void OnBossDead()
+    {
+        Debug.Log("Boss Dead");
+        MatchState = EMatchState.PostMatch;
     }
 }
