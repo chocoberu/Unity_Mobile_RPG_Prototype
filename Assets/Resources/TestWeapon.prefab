@@ -65,7 +65,7 @@ MonoBehaviour:
   magAmmo: 0
   magCapacity: 10
   timeBetFire: 0.2
-  reloadTime: 2
+  reloadTime: 1
 --- !u!114 &-2665113088874472698
 MonoBehaviour:
   m_ObjectHideFlags: 0

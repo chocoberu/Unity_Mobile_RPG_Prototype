@@ -54,6 +54,8 @@ public class GameInstance : MonoBehaviour
 
     private void Initialize()
     {
+        Application.targetFrameRate = 60;
+
         // TODO : ∞‘¿” Static Info Load
         nickname = null;
     }
