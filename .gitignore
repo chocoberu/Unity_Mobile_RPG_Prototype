@@ -60,3 +60,8 @@ crashlytics-build.properties
 
 # Contents
 [Aa]ssets/Contents/*
+[Aa]ssets/Resources/*
+
+# Project Settings
+[Pp]rojectSettings/*
+
