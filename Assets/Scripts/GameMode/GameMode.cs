@@ -34,6 +34,11 @@ public class GameMode : MonoBehaviourPunCallbacks
     [PunRPC]
     protected void ChangeMatchState(int nextMatchState)
     {
+        if(false == PhotonNetwork.IsMasterClient)
+        {
+            matchState = (EMatchState)nextMatchState;
+        }
+
         switch((EMatchState)nextMatchState)
         {
             case EMatchState.PreMatch:

@@ -32,6 +32,10 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     private PlayerAttack playerAttack;
     private PlayerHealth playerHealth;
 
+    // 동기화 관련
+    private Vector3 serializedPosition;
+    private Quaternion serializedRotation;
+
     private void Awake()
     {
         // Component 
@@ -52,7 +56,9 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     {
         if(false == photonView.IsMine)
         {
-
+            transform.position = Vector3.Lerp(transform.position, serializedPosition, Time.deltaTime * moveSpeed);
+            transform.rotation = Quaternion.Slerp(transform.rotation, serializedRotation, Time.deltaTime * rotateSpeed);
+            return;
         }
 
         switch(MoveState)
@@ -179,8 +185,8 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         }
         else
         {
-            transform.position = (Vector3)stream.ReceiveNext();
-            transform.rotation = (Quaternion)stream.ReceiveNext();
+            serializedPosition = (Vector3)stream.ReceiveNext();
+            serializedRotation = (Quaternion)stream.ReceiveNext();
         }
     }
 

@@ -88,6 +88,7 @@ public class ZombieBoss : ZombieBase
                 continue;
             }
 
+            // 가장 가까운 Player를 타겟으로 설정
             if(null == target)
             {
                 target = entity;
@@ -149,7 +150,6 @@ public class ZombieBoss : ZombieBase
     {
         if(false == PhotonNetwork.IsMasterClient)
         {
-            //Debug.Log("ZombieBoss.MoveToTarget() called");
             transform.position = Vector3.Lerp(transform.position, serializedPosition, Time.deltaTime * pathFinder.speed);
             transform.rotation = Quaternion.Slerp(transform.rotation, serializedRotation, Time.deltaTime * rotSpeed);
         }
@@ -165,23 +165,27 @@ public class ZombieBoss : ZombieBase
 
     public void Chasing_Update()
     {
-        if(true == PhotonNetwork.IsMasterClient)
-        {
-            if(null == target)
-            {
-                photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieBossState.Idle);
-                return;
-            }
-            pathFinder.SetDestination(target.transform.position);
-        }
-        
-        MoveToTarget();
-
         if (false == PhotonNetwork.IsMasterClient)
         {
+            MoveToTarget();
             return;
         }
-        
+
+        if(null == target)
+        {
+            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieBossState.Idle);
+            return;
+        }
+        // 현재 타겟과의 거리 판단, 탐색 범위를 벗어났을 경우, 또는 타겟이 죽은 경우
+        if (Vector3.Distance(target.transform.position, transform.position) > detectRange || true == target.Dead)
+        {
+            target = null;
+            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieBossState.Idle);
+            return;
+        }
+
+        pathFinder.SetDestination(target.transform.position);
+                        
         // 공격 범위 내에 들었을 때
         if (Vector3.Distance(pathFinder.destination, transform.position) <= attackRange + 1.0f)
         {
@@ -197,12 +201,12 @@ public class ZombieBoss : ZombieBase
     public void Chasing_Exit()
     {
         photonView.RPC("SetMove", RpcTarget.All, false);
+        pathFinder.isStopped = true;
     }
 
     public void Attack_Enter()
     {
         photonView.RPC("PlayNormalAttack", RpcTarget.All);
-        fsm.Transition(ZombieBossState.Chasing);
     }
 
     public void Dead_Enter()
@@ -244,6 +248,8 @@ public class ZombieBoss : ZombieBase
 
         // Overlap을 통해 충돌 검사
         Collider[] colliders = Physics.OverlapCapsule(transform.position, transform.position + transform.forward * attackRange, 1.0f, targetLayer);
+        Debug.DrawLine(transform.position, transform.position + transform.forward * attackRange, Color.red, 2.0f);
+
         for (int i = 0; i < colliders.Length; i++)
         {
             HealthComponent entity = colliders[i].GetComponent<HealthComponent>();
@@ -253,10 +259,17 @@ public class ZombieBoss : ZombieBase
                 break;
             }
         }
+
+        fsm.Transition(ZombieBossState.Chasing);
     }
 
     private void UpdatePhase()
     {
+        if(false == PhotonNetwork.IsMasterClient)
+        {
+            return;
+        }
+
         if(zombieHealth.Health / zombieHealth.DefaultHealth <= phase2Percent && bossPhase == ZombieBossPhase.Phase1)
         {
             photonView.RPC("Berserk", RpcTarget.All);
@@ -273,6 +286,8 @@ public class ZombieBoss : ZombieBase
 
         pathFinder.speed = 5.5f;
         zombieRenderer.material.color = Color.red;
+
+        // TODO : 미니언 스폰 코루틴 동작
     }
 
     private void OnDead()

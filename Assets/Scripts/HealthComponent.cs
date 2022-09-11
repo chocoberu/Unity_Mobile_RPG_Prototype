@@ -51,6 +51,7 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     {
         if(true == PhotonNetwork.IsMasterClient)
         {
+            Debug.Log($"OnDamage, Damage : {damage}");
             // 같은 팀의 경우 데미지 처리 X
             if(GetTeamNumber() == AttackerTeamNumber)
             {
@@ -68,7 +69,9 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
             // 다른 클라이언트에도 OnDamage 호출
             photonView.RPC("OnDamage", RpcTarget.Others, damage, hitPosition, hitNormal, AttackerTeamNumber);
         }
-        if(Health <= 0.0f && false == Dead)
+
+        Debug.Log($"OnDamage, Damage : {damage}");
+        if (Health <= 0.0f && false == Dead)
         {
             Die();
         }

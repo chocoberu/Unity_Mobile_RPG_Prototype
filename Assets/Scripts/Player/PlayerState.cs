@@ -11,7 +11,9 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
 
     public Vector3 StartPosition { get; set; }
 
+    [SerializeField]
     private int killScore = 0;
+    [SerializeField]
     private int deathScore = 0;
     
     public int KillScore 
@@ -25,6 +27,7 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
             }
 
             killScore = value;
+            photonView.RPC("SetKillScore", RpcTarget.Others, killScore);
         }
     }
     public int DeathScore
@@ -60,6 +63,13 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
     public void SetTeamNumber(int newTeamNumber)
     {
         teamNumber = newTeamNumber;
+    }
+
+    [PunRPC]
+    private void SetKillScore(int newKillScore)
+    {
+        killScore = newKillScore;
+        Debug.Log($"Kill score : {killScore}");
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

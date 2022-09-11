@@ -22,7 +22,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         Room
     }
 
-    EUIMode uiMode;
+    private EUIMode uiMode;
     
     public GameObject nicknamePanel;
     public GameObject lobbyPanel;
@@ -93,7 +93,14 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         // 게임 버전 설정
         PhotonNetwork.GameVersion = gameVersion;
 
-        ChangeUIMode(EUIMode.Nickname);
+        if(null == GameInstance.Instance.nickname)
+        {
+            ChangeUIMode(EUIMode.Nickname);
+        }
+        else
+        {
+            ChangeUIMode(EUIMode.Lobby);
+        }
     }
 
     public override void OnConnectedToMaster()
@@ -158,7 +165,10 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             RoomNameText.text = room.Name;
             PlayerCount.text = $"{room.PlayerCount} / {room.MaxPlayers}";
 
-            roomButtonList[index].interactable = true;
+            if(true == room.IsOpen)
+            {
+                roomButtonList[index].interactable = true;
+            }
             roomButtonList[index].onClick.AddListener(() =>
             {
                 PhotonNetwork.JoinRoom(RoomNameText.text);
@@ -258,6 +268,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void OnClickNicknameConfirmButton()
     {
+        Debug.Log("OnClickNicknameConfirmButton() called");
         if(null == nicknameInputField)
         {
             Debug.Log("Error : OnClickConfirmButton(), NicknameInputfield is null");
@@ -272,6 +283,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         }
 
         PhotonNetwork.NickName = nicknameInputField.text;
+        GameInstance.Instance.nickname = PhotonNetwork.NickName;
         Debug.Log($"Nickname = {PhotonNetwork.NickName}");
         nicknamePanel.SetActive(false);
         
@@ -322,6 +334,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         {
             case EUIMode.Lobby:
                 PhotonNetwork.Disconnect();
+                GameInstance.Instance.nickname = null;
                 SceneManager.LoadScene("GameStart");
                 break;
             
@@ -373,6 +386,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     private void ChangeUIMode(EUIMode mode)
     {
+        Debug.Log($"ChangeUIMode() called, mode : {mode}");
         switch(mode)
         {
             case EUIMode.Lobby:

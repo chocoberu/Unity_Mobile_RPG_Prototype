@@ -46,7 +46,7 @@ public class GameManager : MonoBehaviourPunCallbacks
                     if(true == PhotonNetwork.IsMasterClient)
                     {
                         Debug.Log("PvE GameMode");
-                        GameObject gameModeObject = PhotonNetwork.Instantiate("PvEGameMode", Vector3.zero, Quaternion.identity);
+                        GameObject gameModeObject = PhotonNetwork.InstantiateRoomObject("PvEGameMode", Vector3.zero, Quaternion.identity);
                         gameMode = gameModeObject.GetComponent<GameMode>();
                     }
                 }
@@ -74,5 +74,15 @@ public class GameManager : MonoBehaviourPunCallbacks
             return;
         }
         gameMode.UpdatePlayerList();
+    }
+
+    public void ExitGame()
+    {
+        PhotonNetwork.LeaveRoom();
+    }
+
+    public override void OnLeftRoom()
+    {
+        PhotonNetwork.LoadLevel("Lobby");
     }
 }

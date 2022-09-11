@@ -13,9 +13,10 @@ public class Rifle : MonoBehaviourPun, IWeaponable
     public float AttackDamage { get { return attackDamage; } }
 
     private PlayerAttack playerAttack;
-    private Animator playerAnimator;
     private PlayerHealth playerHealth;
+    private PlayerState playerState;
 
+    private Animator playerAnimator;
     private LineRenderer bulletLineRenderer;
     private AudioSource audioPlayer;
     private List<MeshRenderer> meshRendererList = new List<MeshRenderer>();
@@ -71,6 +72,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
 
             playerAttack = player.GetComponent<PlayerAttack>();
             playerHealth = player.GetComponent<PlayerHealth>();
+            playerState = player.GetComponent<PlayerState>();
             playerAnimator = player.GetComponent<Animator>();
             break;
         }
@@ -152,6 +154,10 @@ public class Rifle : MonoBehaviourPun, IWeaponable
             if (null != target)
             {
                 target.OnDamage(AttackDamage, hit.point, hit.normal, playerHealth.GetTeamNumber());
+                if(true == target.Dead)
+                {
+                    playerState.KillScore++;
+                }
             }
             hitPosition = hit.point;
         }

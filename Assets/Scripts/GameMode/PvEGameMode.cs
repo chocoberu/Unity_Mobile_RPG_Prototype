@@ -1,7 +1,9 @@
 using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PvEGameMode : GameMode
 {
@@ -10,21 +12,25 @@ public class PvEGameMode : GameMode
 
     private GameObject playerObject;
     private ZombieBoss zombieBoss;
+
+    // UI
+    public GameObject gameClearUI;
+    private Text gameClearTitle;
+    private Text detail;
     
     // Start is called before the first frame update
     void Start()
     {
+        gameClearTitle = gameClearUI.transform.Find("GameClearTitle").GetComponent<Text>();
+        detail = gameClearUI.transform.Find("Detail").GetComponent<Text>();
+        gameClearUI.SetActive(false);
         MatchState = EMatchState.PreMatch;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (MatchState == EMatchState.PreMatch && playerList.Count == PhotonNetwork.CountOfPlayers && null != zombieBoss)
-        {
-            MatchState = EMatchState.InProgress;
-            photonView.RPC("ChangeMatchState", RpcTarget.Others, (int)MatchState);
-        }
+        
     }
 
     public override void UpdatePlayerList()
@@ -35,6 +41,16 @@ public class PvEGameMode : GameMode
         {
             playerList[i].OnDeath -= RestartPlayer;
             playerList[i].OnDeath += RestartPlayer;
+        }
+
+        if (false == PhotonNetwork.IsMasterClient)
+        {
+            return;
+        }
+
+        if (MatchState == EMatchState.PreMatch && playerList.Count == PhotonNetwork.CurrentRoom.PlayerCount)
+        {
+            MatchState = EMatchState.InProgress;
         }
     }
 
@@ -61,13 +77,6 @@ public class PvEGameMode : GameMode
 
         playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, Quaternion.identity);
         playerObject.GetComponent<PlayerState>().StartPosition = playerStartPosition;
-        
-        if(true == PhotonNetwork.IsMasterClient)
-        {
-            GameObject boss = PhotonNetwork.Instantiate("ZombieBoss", new Vector3(0.0f, 0.5f, 0.0f), Quaternion.identity);
-            zombieBoss = boss.GetComponentInChildren<ZombieBoss>();
-            zombieBoss.GetComponent<ZombieHealth>().OnDeath += OnBossDead;
-        }
     }
 
     public override void StartMatch()
@@ -76,15 +85,37 @@ public class PvEGameMode : GameMode
 
         if (false == PhotonNetwork.IsMasterClient)
         {
+            zombieBoss = GameObject.FindGameObjectWithTag("Enemy").GetComponent<ZombieBoss>();
+            if(null == zombieBoss)
+            {
+                Debug.Log("zombie boss is null");
+                return;
+            }
+            zombieBoss.GetComponent<ZombieHealth>().OnDeath += OnBossDead;
             return;
         }
+        
+        // Boss Spawn
+        if(true == PhotonNetwork.IsMasterClient)
+        {
+            GameObject boss = PhotonNetwork.InstantiateRoomObject("ZombieBoss", new Vector3(0.0f, 0.5f, 0.0f), Quaternion.identity);
+            zombieBoss = boss.GetComponentInChildren<ZombieBoss>();
+            zombieBoss.GetComponent<ZombieHealth>().OnDeath += OnBossDead;
 
-        zombieBoss.photonView.RPC("StartFSM", RpcTarget.All);
+            zombieBoss.photonView.RPC("StartFSM", RpcTarget.All);
+
+            photonView.RPC("ChangeMatchState", RpcTarget.Others, (int)MatchState);
+        }
     }
 
     public override void EndMatch()
     {
+        Debug.Log("End Match");
 
+        gameClearUI.SetActive(true);
+        PlayerState playerState = playerObject.GetComponent<PlayerState>();
+
+        detail.text = $"Kill : {playerState.KillScore} Death : {playerState.DeathScore}";
     }
 
     private void RestartPlayer(GameObject player)
@@ -92,7 +123,7 @@ public class PvEGameMode : GameMode
         StartCoroutine(CoRestartPlayer(player));
     }
 
-    IEnumerator CoRestartPlayer(GameObject player)
+    private IEnumerator CoRestartPlayer(GameObject player)
     {
         yield return new WaitForSeconds(respawnTime);
 
@@ -108,6 +139,23 @@ public class PvEGameMode : GameMode
     private void OnBossDead()
     {
         Debug.Log("Boss Dead");
-        MatchState = EMatchState.PostMatch;
+
+        StartCoroutine(CoEndMatch());
     }
+
+    private IEnumerator CoEndMatch()
+    {
+        yield return new WaitForSeconds(3.0f);
+
+        MatchState = EMatchState.PostMatch;
+        photonView.RPC("ChangeMatchState", RpcTarget.Others, (int)MatchState);
+    }
+
+    public void ExitRoom()
+    {
+        Debug.Log("Exit Room");
+        
+        GameManager.Instance.ExitGame();
+    }
+
 }

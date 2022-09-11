@@ -33,6 +33,8 @@ public class GameInstance : MonoBehaviour
             gameType = value;
         }
     }
+
+    public string nickname;
     
     private void Awake()
     {
@@ -53,6 +55,7 @@ public class GameInstance : MonoBehaviour
     private void Initialize()
     {
         // TODO : ∞‘¿” Static Info Load
+        nickname = null;
     }
 
     // Start is called before the first frame update
