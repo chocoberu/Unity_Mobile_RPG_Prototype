@@ -145,7 +145,6 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         // 재장전, 서버 검증용
         if(true == isReloading || PlayerMoveState.Roll == playerMovement.MoveState || Time.time < lastFireTime + timeBetFire)
         {
-            Debug.Log("StopAttack() callee");
             StopAttack();
             return;
         }
@@ -153,7 +152,6 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         // 변수 검증
         if(Vector3.Distance(transform.position, firePosition) >= 2.0f)
         {
-            Debug.Log("StopAttack() callee");
             StopAttack();
             return;
         }
@@ -192,7 +190,6 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         magAmmo--;
         if (magAmmo <= 0)
         {
-            Debug.Log("StopAttack() callee");
             StopAttack();
             StartCoroutine(Reload());
         }
