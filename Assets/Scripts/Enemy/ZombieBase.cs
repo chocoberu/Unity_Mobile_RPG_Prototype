@@ -52,6 +52,8 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
         zombieRigidbody = GetComponent<Rigidbody>();
         zombieHealth = GetComponent<ZombieHealth>();
 
+        pathFinder.enabled = false;
+        pathFinder.enabled = true;
         pathFinder.isStopped = true;
         
         fsm = new FSM<ZombieState>(this);
@@ -109,16 +111,6 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
 
     }
 
-    public virtual void Attack_Update()
-    {
-
-    }
-
-    public virtual void Attack_Exit()
-    {
-
-    }
-
     public virtual void Dead_Enter()
     {
         pathFinder.isStopped = true;
@@ -133,17 +125,9 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
         }
     }
 
-    [PunRPC]
     public void StartFSM()
     {
         fsm.StartFSM(ZombieState.Idle);
-    }
-
-    [PunRPC]
-    protected void TransitionState(int nextState)
-    {
-        Debug.Log($"Transition State : {(ZombieState)nextState}");
-        fsm.Transition((ZombieState)nextState);
     }
 
     [PunRPC]
@@ -160,7 +144,7 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
 
     protected void NormalAttackHitCheck()
     {
-        if (false == PhotonNetwork.IsMasterClient)
+        if (false == PhotonNetwork.IsMasterClient || true == zombieHealth.Dead)
         {
             return;
         }
@@ -188,7 +172,7 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
         fsm.Transition(ZombieState.Dead);
     }
 
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    public virtual void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (true == stream.IsWriting)
         {

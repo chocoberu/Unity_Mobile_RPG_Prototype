@@ -106,12 +106,12 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
 
     public virtual void Die()
     {
+        Dead = true;
+
         if (null != OnDeath)
         {
             OnDeath.Invoke();
         }
-
-        Dead = true;
 
         if (null != hpBarWidget)
         {

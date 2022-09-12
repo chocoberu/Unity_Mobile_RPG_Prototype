@@ -17,6 +17,8 @@ public class ZombieBoss : ZombieBase
     private float phase2Percent = 0.5f;
     private float minionSpawnTime = 10.0f;
 
+    private List<ZombieMinion> minionList = new List<ZombieMinion>();
+
     protected override void Awake()
     {
         base.Awake();
@@ -27,15 +29,15 @@ public class ZombieBoss : ZombieBase
         bossPhase = ZombieBossPhase.Phase1;
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        //fsm.StartFSM(ZombieBossState.Idle);
-    }
-
     // Update is called once per frame
     void Update()
     {
+        if(false == PhotonNetwork.IsMasterClient)
+        {
+            MoveToTarget();
+            return;
+        }
+
         fsm.OnUpdate();
     }
 
@@ -84,11 +86,11 @@ public class ZombieBoss : ZombieBase
 
         if(null != target)
         {
-            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieState.Chasing);
+            fsm.Transition(ZombieState.Chasing);
         }
         else
         {
-            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieState.Patrol);
+            fsm.Transition(ZombieState.Patrol);
         }
     }
 
@@ -115,8 +117,7 @@ public class ZombieBoss : ZombieBase
         if (Vector3.Distance(pathFinder.destination, transform.position) <= 1.0f)
         {
             pathFinder.isStopped = true;
-
-            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieState.Idle);
+            fsm.Transition(ZombieState.Idle);
         }
     }
 
@@ -140,14 +141,14 @@ public class ZombieBoss : ZombieBase
 
         if(null == target)
         {
-            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieState.Idle);
+            fsm.Transition(ZombieState.Idle);
             return;
         }
         // 현재 타겟과의 거리 판단, 탐색 범위를 벗어났을 경우, 또는 타겟이 죽은 경우
         if (Vector3.Distance(target.transform.position, transform.position) > detectRange || true == target.Dead)
         {
             target = null;
-            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieState.Idle);
+            fsm.Transition(ZombieState.Idle);
             return;
         }
 
@@ -215,7 +216,13 @@ public class ZombieBoss : ZombieBase
     {
         while(false == zombieHealth.Dead)
         {
-            GameObject minion = PhotonNetwork.InstantiateRoomObject("ZombieMinion", transform.position + Random.insideUnitSphere * 7.0f, Quaternion.identity);
+            if(minionList.Count < 4)
+            {
+                GameObject minionObject = PhotonNetwork.InstantiateRoomObject("ZombieMinion", transform.position + Random.insideUnitSphere * 7.0f, Quaternion.identity);
+                ZombieMinion minion = minionObject.GetComponentInChildren<ZombieMinion>();
+                minionList.Add(minion);
+                minion.SetOwner(this);
+            }
             yield return new WaitForSeconds(minionSpawnTime);
         }
     }
@@ -224,8 +231,44 @@ public class ZombieBoss : ZombieBase
     {
         base.OnDead();
 
+        if(false == PhotonNetwork.IsMasterClient)
+        {
+            return;
+        }
+
         Debug.Log("Stop Spawn");
         StopCoroutine(CoSpawnMinion());
+
+        // 모든 미니언 사망 처리
+        Debug.Log($"current minion count : {minionList.Count}");
+        for(int i = 0; i < minionList.Count; i++)
+        { 
+            ZombieHealth zombie = minionList[i].GetComponent<ZombieHealth>();
+            zombie.OnDamage(zombie.Health, zombie.transform.position, Vector3.up, -100);
+        }
+
+        minionList.Clear();
     }
 
+    public void RemoveMinion(ZombieMinion minion)
+    {
+        if(true == zombieHealth.Dead)
+        {
+            return;
+        }
+
+        if(true == minionList.Remove(minion))
+        {
+            Debug.Log($"RemoveMinion() success, current minion : {minionList.Count}");
+        }
+        else
+        {
+            Debug.Log($"RemoveMinion() failed, current minion : {minionList.Count}");
+        }
+    }
+
+    public override void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        base.OnPhotonSerializeView(stream, info);
+    }
 }

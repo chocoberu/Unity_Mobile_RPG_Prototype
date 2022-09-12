@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class ZombieMinion : ZombieBase
 {
+    private ZombieBoss owner;
 
     protected override void Awake()
     {
@@ -19,12 +20,21 @@ public class ZombieMinion : ZombieBase
     // Start is called before the first frame update
     void Start()
     {
-        fsm.StartFSM(ZombieState.Idle);
+        if(true == PhotonNetwork.IsMasterClient)
+        {
+            fsm.StartFSM(ZombieState.Idle);
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(false == PhotonNetwork.IsMasterClient)
+        {
+            MoveToTarget();
+            return;
+        }
+
         fsm.OnUpdate();
     }
 
@@ -73,11 +83,11 @@ public class ZombieMinion : ZombieBase
 
         if (null != target)
         {
-            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieState.Chasing);
+            fsm.Transition(ZombieState.Chasing);
         }
         else
         {
-            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieState.Patrol);
+            fsm.Transition(ZombieState.Patrol);
         }
     }
 
@@ -104,8 +114,7 @@ public class ZombieMinion : ZombieBase
         if (Vector3.Distance(pathFinder.destination, transform.position) <= 1.0f)
         {
             pathFinder.isStopped = true;
-
-            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieState.Idle);
+            fsm.Transition(ZombieState.Idle);
         }
     }
 
@@ -129,14 +138,14 @@ public class ZombieMinion : ZombieBase
 
         if (null == target)
         {
-            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieState.Idle);
+            fsm.Transition(ZombieState.Idle);
             return;
         }
         // ÇöÀç Å¸°Ù°úÀÇ °Å¸® ÆÇ´Ü, Å½»ö ¹üÀ§¸¦ ¹þ¾î³µÀ» °æ¿ì, ¶Ç´Â Å¸°ÙÀÌ Á×Àº °æ¿ì
         if (Vector3.Distance(target.transform.position, transform.position) > detectRange || true == target.Dead)
         {
             target = null;
-            photonView.RPC("TransitionState", RpcTarget.All, (int)ZombieState.Idle);
+            fsm.Transition(ZombieState.Idle);
             return;
         }
 
@@ -172,5 +181,25 @@ public class ZombieMinion : ZombieBase
     protected override void OnDead()
     {
         base.OnDead();
+
+        if(true == PhotonNetwork.IsMasterClient)
+        {
+            owner.RemoveMinion(this);
+        }
+    }
+
+    public void SetOwner(ZombieBoss boss)
+    {
+        if(null == boss)
+        {
+            return;
+        }
+
+        owner = boss;
+    }
+
+    public override void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        base.OnPhotonSerializeView(stream, info);
     }
 }

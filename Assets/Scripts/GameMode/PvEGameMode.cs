@@ -82,8 +82,18 @@ public class PvEGameMode : GameMode
     public override void StartMatch()
     {
         Debug.Log("Start Match");
+        
+        // Boss Spawn
+        if (true == PhotonNetwork.IsMasterClient)
+        {
+            GameObject boss = PhotonNetwork.InstantiateRoomObject("ZombieBoss", new Vector3(0.0f, 0.5f, 0.0f), Quaternion.identity);
+            zombieBoss = boss.GetComponentInChildren<ZombieBoss>();
+            zombieBoss.GetComponent<ZombieHealth>().OnDeath += OnBossDead;
 
-        if (false == PhotonNetwork.IsMasterClient)
+            zombieBoss.StartFSM();
+            photonView.RPC("ChangeMatchState", RpcTarget.Others, (int)MatchState);
+        }
+        else
         {
             zombieBoss = GameObject.FindGameObjectWithTag("Enemy").GetComponent<ZombieBoss>();
             if(null == zombieBoss)
@@ -95,17 +105,6 @@ public class PvEGameMode : GameMode
             return;
         }
         
-        // Boss Spawn
-        if(true == PhotonNetwork.IsMasterClient)
-        {
-            GameObject boss = PhotonNetwork.InstantiateRoomObject("ZombieBoss", new Vector3(0.0f, 0.5f, 0.0f), Quaternion.identity);
-            zombieBoss = boss.GetComponentInChildren<ZombieBoss>();
-            zombieBoss.GetComponent<ZombieHealth>().OnDeath += OnBossDead;
-
-            zombieBoss.photonView.RPC("StartFSM", RpcTarget.All);
-
-            photonView.RPC("ChangeMatchState", RpcTarget.Others, (int)MatchState);
-        }
     }
 
     public override void EndMatch()
