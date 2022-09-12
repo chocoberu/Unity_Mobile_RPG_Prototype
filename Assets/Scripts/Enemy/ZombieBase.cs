@@ -116,7 +116,7 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
         pathFinder.isStopped = true;
     }
 
-    protected void MoveToTarget()
+    protected void UpdateTransform()
     {
         if (false == PhotonNetwork.IsMasterClient)
         {

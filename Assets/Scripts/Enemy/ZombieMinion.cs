@@ -31,7 +31,7 @@ public class ZombieMinion : ZombieBase
     {
         if(false == PhotonNetwork.IsMasterClient)
         {
-            MoveToTarget();
+            UpdateTransform();
             return;
         }
 
@@ -107,7 +107,6 @@ public class ZombieMinion : ZombieBase
     {
         if (false == PhotonNetwork.IsMasterClient)
         {
-            MoveToTarget();
             return;
         }
 
@@ -132,7 +131,6 @@ public class ZombieMinion : ZombieBase
     {
         if (false == PhotonNetwork.IsMasterClient)
         {
-            MoveToTarget();
             return;
         }
 

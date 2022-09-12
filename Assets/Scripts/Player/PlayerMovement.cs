@@ -150,6 +150,10 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         {
             MoveState = PlayerMoveState.Roll;
             rollDirection = new Vector3(Horizon, 0.0f, Vertical);
+            if(rollDirection == Vector3.zero)
+            {
+                rollDirection = new Vector3(transform.forward.x, 0.0f, transform.forward.z).normalized;
+            }
             photonView.RPC("OnRollProcessClient", RpcTarget.All);
         }
     }
