@@ -114,8 +114,8 @@ public class Rifle : MonoBehaviourPun, IWeaponable
 
     public void StopAttack()
     {
+        Debug.Log("StopAttack() called");
         isPressed = false;
-        playerMovement.RotationFix = false;
         StopCoroutine(Shot());
     }
 
@@ -125,8 +125,12 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         {
             // 실제 공격 처리는 호스트에 위임
             photonView.RPC("Attack", RpcTarget.MasterClient, fireTransform.position, transform.forward);
-
             yield return new WaitForSeconds(timeBetFire);
+            
+            if(false == isPressed)
+            {
+                playerMovement.RotationFix = false;
+            }
         }
     }
 
@@ -141,6 +145,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         // 재장전, 서버 검증용
         if(true == isReloading || PlayerMoveState.Roll == playerMovement.MoveState || Time.time < lastFireTime + timeBetFire)
         {
+            Debug.Log("StopAttack() callee");
             StopAttack();
             return;
         }
@@ -148,6 +153,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         // 변수 검증
         if(Vector3.Distance(transform.position, firePosition) >= 2.0f)
         {
+            Debug.Log("StopAttack() callee");
             StopAttack();
             return;
         }
@@ -156,7 +162,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         Vector3 hitPosition = Vector3.zero;
 
         HealthComponent target = null;
-        if (true == Physics.Raycast(firePosition, direction, out hit, fireDistance))
+        if (true == Physics.Raycast(firePosition, fireTransform.forward, out hit, fireDistance))
         {
             target = hit.collider.GetComponent<HealthComponent>();
 
@@ -184,11 +190,13 @@ public class Rifle : MonoBehaviourPun, IWeaponable
     private void OnAttackProcessClient(Vector3 hitPosition)
     {
         magAmmo--;
-        if(magAmmo <= 0)
+        if (magAmmo <= 0)
         {
+            Debug.Log("StopAttack() callee");
             StopAttack();
             StartCoroutine(Reload());
         }
+
         StartCoroutine(ShotEffect(hitPosition));
     }
 
@@ -207,6 +215,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         yield return new WaitForSeconds(0.03f);
 
         bulletLineRenderer.enabled = false;
+
     }
 
     private IEnumerator Reload()
