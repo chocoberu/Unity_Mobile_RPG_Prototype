@@ -26,6 +26,8 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     public float Horizon { get; set; }
     public float Vertical { get; set; }
 
+    public bool RotationFix { get; set; }
+
     // Components
     private Rigidbody playerRigidbody;
     private Animator animator;
@@ -85,7 +87,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
 
     private void Rotate()
     {
-        if (moveDirection == Vector3.zero)
+        if (moveDirection == Vector3.zero || true == RotationFix)
         {
             return;
         }
@@ -104,7 +106,8 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
 
     private void Roll()
     {
-        transform.position += transform.forward * rollSpeed * Time.deltaTime;
+        //transform.position += transform.forward * rollSpeed * Time.deltaTime;
+        transform.position += rollDirection.normalized* rollSpeed * Time.deltaTime;
     }
 
     // InputSystem Callback
@@ -146,6 +149,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         if(false == playerHealth.Dead && MoveState != PlayerMoveState.Roll)
         {
             MoveState = PlayerMoveState.Roll;
+            rollDirection = new Vector3(Horizon, 0.0f, Vertical);
             photonView.RPC("OnRollProcessClient", RpcTarget.All);
         }
     }
@@ -158,6 +162,9 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     [PunRPC]
     private void OnRollProcessClient()
     {
+        Quaternion rot = Quaternion.LookRotation(rollDirection);
+        transform.rotation = rot;
+
         animator.SetTrigger("Roll");
         playerAttack.SetWeaponVisible(false);
     }

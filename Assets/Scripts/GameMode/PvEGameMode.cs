@@ -30,7 +30,7 @@ public class PvEGameMode : GameMode
     // Update is called once per frame
     void Update()
     {
-        
+        //Debug.Log($"{PhotonNetwork.ServerTimestamp}");
     }
 
     public override void UpdatePlayerList()
