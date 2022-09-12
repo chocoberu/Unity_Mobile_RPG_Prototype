@@ -166,6 +166,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
             hitPosition = fireTransform.position + fireTransform.forward * fireDistance;
         }
 
+        lastFireTime = Time.time;
         // 발사 이후 처리
         photonView.RPC("OnAttackProcessClient", RpcTarget.All, hitPosition);
     }
