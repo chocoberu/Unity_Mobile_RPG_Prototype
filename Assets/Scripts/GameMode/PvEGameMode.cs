@@ -15,6 +15,7 @@ public class PvEGameMode : GameMode
 
     // UI
     public GameObject gameClearUI;
+    public GameObject backButton;
     private Text gameClearTitle;
     private Text detail;
     
@@ -23,6 +24,7 @@ public class PvEGameMode : GameMode
     {
         gameClearTitle = gameClearUI.transform.Find("GameClearTitle").GetComponent<Text>();
         detail = gameClearUI.transform.Find("Detail").GetComponent<Text>();
+        
         gameClearUI.SetActive(false);
         MatchState = EMatchState.PreMatch;
     }
@@ -112,6 +114,8 @@ public class PvEGameMode : GameMode
         Debug.Log("End Match");
 
         gameClearUI.SetActive(true);
+        backButton.SetActive(false);
+
         PlayerState playerState = playerObject.GetComponent<PlayerState>();
 
         detail.text = $"Kill : {playerState.KillScore} Death : {playerState.DeathScore}";
