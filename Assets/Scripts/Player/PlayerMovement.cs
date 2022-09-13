@@ -120,6 +120,10 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         }
 
         Vector2 movement = value.Get<Vector2>();
+#if UNITY_ANDROID || UNITY_IOS
+        Vector2 direction = GetInputMovement(movement);
+        movement = Vector2.Dot(movement, direction) * direction;
+#endif
         Horizon = movement.x;
         Vertical = movement.y;
 
@@ -186,6 +190,54 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         {
             MoveState = PlayerMoveState.Idle;
         }
+    }
+
+    private Vector2 GetInputMovement(Vector2 input)
+    {
+        Vector2 ret = new Vector2(0.0f, 0.0f);
+        if(input == Vector2.zero)
+        {
+            return ret;
+        }
+
+        float angle = Mathf.Rad2Deg * Mathf.Atan2(input.y, input.x);
+
+        if(-22.5f <= angle && angle < 22.5f)
+        {
+            ret = new Vector2(1.0f, 0.0f);
+        }
+        else if(22.5f <= angle && angle < 67.5f)
+        {
+            ret = new Vector2(1.0f, 1.0f).normalized;
+        }
+        else if(67.5f <= angle && angle < 112.5f)
+        {
+            ret = new Vector2(0.0f, 1.0f);
+        }
+        else if(112.5f <= angle && angle < 157.5f)
+        {
+            ret = new Vector2(-1.0f, 1.0f).normalized;
+        }
+        else if((157.5f <= angle && angle <= 180.0f) || (-180.0f <= angle && angle < -157.5f))
+        {
+            ret = new Vector2(-1.0f, 0.0f);
+        }
+        else if(-157.5f <= angle && angle < -112.5f)
+        {
+            ret = new Vector2(-1.0f, -1.0f).normalized;
+        }
+        else if(-112.5f <= angle && angle < -67.5f)
+        {
+            ret = new Vector2(0.0f, -1.0f);
+        }
+        else if(-67.5f <= angle && angle < -22.5f)
+        {
+            ret = new Vector2(1.0f, -1.0f).normalized;
+        }
+
+        //Debug.Log($"angle : {angle}");
+
+        return ret;
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
