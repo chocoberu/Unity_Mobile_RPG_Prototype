@@ -166,6 +166,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     [PunRPC]
     private void OnRollProcessClient()
     {
+        MoveState = PlayerMoveState.Roll;
         Quaternion rot = Quaternion.LookRotation(rollDirection);
         transform.rotation = rot;
 
