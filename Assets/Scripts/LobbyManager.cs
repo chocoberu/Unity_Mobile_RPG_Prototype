@@ -36,6 +36,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     // Lobby
     public Button prevButton;
     public Button createRoomButton;
+    public Button nicknameButton;
 
     // Room Panel
     public Button readyStartButton;
@@ -63,6 +64,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         prevButton = GameObject.Find("PrevButton").GetComponent<Button>();
         createRoomButton = GameObject.Find("CreateRoomButton").GetComponent<Button>();
+        nicknameButton = GameObject.Find("NicknameButton").GetComponent<Button>();
 
         readyStartButton = GameObject.Find("ReadyStartButton").GetComponent<Button>();
         roomName = GameObject.Find("RoomName").GetComponent<Text>();
@@ -84,6 +86,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         nicknameConfirmButton.onClick.AddListener(OnClickNicknameConfirmButton);
         prevButton.onClick.AddListener(OnClickPrevButton);
         createRoomButton.onClick.AddListener(OnClickCreateRoomButton);
+        nicknameButton.onClick.AddListener(OnClickNicknameButton);
 
         readyStartButton.onClick.AddListener(OnClickReadyStartButton);
 
@@ -93,7 +96,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         // 게임 버전 설정
         PhotonNetwork.GameVersion = gameVersion;
 
-        if(null == GameInstance.Instance.nickname)
+        if(null == GameInstance.Instance.nickname || false == PhotonNetwork.IsConnected)
         {
             ChangeUIMode(EUIMode.Nickname);
         }
@@ -135,7 +138,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         base.OnRoomListUpdate(roomList);
 
-        // 초기화
+        // ui 리스트 초기화
         foreach(var room in roomButtonList)
         {
             Text RoomNameText = room.transform.Find("RoomNameText").GetComponent<Text>();
@@ -150,6 +153,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             room.onClick.RemoveAllListeners();
         }
 
+        // ui 리스트 설정
         int index = 0;
         foreach (var room in roomList)
         {
@@ -284,10 +288,17 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         PhotonNetwork.NickName = nicknameInputField.text;
         GameInstance.Instance.nickname = PhotonNetwork.NickName;
-        Debug.Log($"Nickname = {PhotonNetwork.NickName}");
+        Debug.Log($"Nickname : {PhotonNetwork.NickName}");
         nicknamePanel.SetActive(false);
-        
-        ConnectMasterServer();
+
+        if (false == PhotonNetwork.IsConnected)
+        {
+            ConnectMasterServer();
+        }
+        else
+        {
+            ChangeUIMode(EUIMode.Lobby);
+        }
     }
 
     public void OnClickRoomConfirmButton()
@@ -348,6 +359,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public void OnClickCreateRoomButton()
     {
         ChangeUIMode(EUIMode.CreateRoom);
+    }
+
+    public void OnClickNicknameButton()
+    {
+        ChangeUIMode(EUIMode.Nickname);
     }
 
     public void OnClickReadyStartButton()
