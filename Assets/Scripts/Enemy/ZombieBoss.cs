@@ -16,12 +16,17 @@ public class ZombieBoss : ZombieBase
     private ZombieBossPhase bossPhase;
     private float phase2Percent = 0.5f;
     private float minionSpawnTime = 10.0f;
+    [SerializeField]
+    private int maxMinionCount = 4;
 
     private List<ZombieMinion> minionList = new List<ZombieMinion>();
 
     protected override void Awake()
     {
         base.Awake();
+
+        moveSpeed = 6.0f;
+        pathFinder.speed = moveSpeed;
 
         zombieHealth.OnDeath += OnDead;
         zombieHealth.OnUpdate += UpdatePhase;
@@ -153,12 +158,12 @@ public class ZombieBoss : ZombieBase
         pathFinder.SetDestination(target.transform.position);
                         
         // 공격 범위 내에 들었을 때
-        if (Vector3.Distance(pathFinder.destination, transform.position) <= attackRange + 1.0f)
+        if (Vector3.Distance(target.transform.position, transform.position) <= attackRange + 1.0f)
         {
             pathFinder.isStopped = true;
 
             Quaternion rot = Quaternion.LookRotation(target.transform.position - transform.position);
-            transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotationSpeed * Time.deltaTime);
 
             fsm.Transition(ZombieState.Attack);
         }
@@ -198,9 +203,9 @@ public class ZombieBoss : ZombieBase
         Debug.Log("Boss Phase 2 Enter");
 
         bossPhase = ZombieBossPhase.Phase2;
-        damage *= 1.5f;
+        damage *= 2.0f;
 
-        pathFinder.speed = 5.5f;
+        pathFinder.speed = moveSpeed * 1.5f;
         zombieRenderer.material.color = Color.red;
 
         // TODO : 미니언 스폰 코루틴 동작
@@ -214,7 +219,7 @@ public class ZombieBoss : ZombieBase
     {
         while(false == zombieHealth.Dead)
         {
-            if(minionList.Count < 1)
+            if(minionList.Count < maxMinionCount)
             {
                 GameObject minionObject = PhotonNetwork.InstantiateRoomObject("ZombieMinion", transform.position + Random.insideUnitSphere * 7.0f, Quaternion.identity);
                 ZombieMinion minion = minionObject.GetComponentInChildren<ZombieMinion>();

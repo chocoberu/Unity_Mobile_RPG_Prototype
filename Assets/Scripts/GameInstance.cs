@@ -54,7 +54,9 @@ public class GameInstance : MonoBehaviour
 
     private void Initialize()
     {
+#if UNITY_ANDROID || UNITY_IOS
         Application.targetFrameRate = 60;
+#endif
 
         // TODO : ∞‘¿” Static Info Load
         nickname = null;

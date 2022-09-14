@@ -17,7 +17,6 @@ public class DamageTextWidget : MonoBehaviour
         damageText = GetComponent<Text>();
         damageText.enabled = false;
         randomPosValue = Vector3.zero;
-
     }
 
     // Update is called once per frame

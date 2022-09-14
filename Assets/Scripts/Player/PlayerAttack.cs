@@ -75,7 +75,7 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
 
         if(true == value.isPressed)
         {
-            Debug.Log("Pressed");
+            //Debug.Log("Pressed");
             if(weapon != null)
             {
                 weapon.StartAttack();
@@ -83,7 +83,7 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
         }
         else
         {
-            Debug.Log("Released");
+            //Debug.Log("Released");
             if (weapon != null)
             {
                 weapon.StopAttack();

@@ -13,6 +13,10 @@ public class ZombieMinion : ZombieBase
 
         damage = 15.0f;
         attackRange = 1.5f;
+        detectRange = 50.0f;
+
+        moveSpeed = 5.0f;
+        pathFinder.speed = moveSpeed;
 
         zombieHealth.OnDeath += OnDead;
     }
@@ -98,7 +102,7 @@ public class ZombieMinion : ZombieBase
         if (true == PhotonNetwork.IsMasterClient)
         {
             pathFinder.isStopped = false;
-            Vector3 randomPatrolPos = transform.position + Random.insideUnitSphere * 3.0f;
+            Vector3 randomPatrolPos = transform.position + Random.insideUnitSphere * 7.0f;
             pathFinder.SetDestination(randomPatrolPos);
         }
     }
@@ -140,7 +144,7 @@ public class ZombieMinion : ZombieBase
             return;
         }
         // 현재 타겟과의 거리 판단, 탐색 범위를 벗어났을 경우, 또는 타겟이 죽은 경우
-        if (Vector3.Distance(target.transform.position, transform.position) > detectRange || true == target.Dead)
+        if (true == target.Dead || Vector3.Distance(target.transform.position, transform.position) > detectRange)
         {
             target = null;
             fsm.Transition(ZombieState.Idle);
@@ -150,12 +154,12 @@ public class ZombieMinion : ZombieBase
         pathFinder.SetDestination(target.transform.position);
 
         // 공격 범위 내에 들었을 때
-        if (Vector3.Distance(pathFinder.destination, transform.position) <= attackRange + 1.0f)
+        if (Vector3.Distance(target.transform.position, transform.position) <= attackRange + 1.0f)
         {
             pathFinder.isStopped = true;
 
             Quaternion rot = Quaternion.LookRotation(target.transform.position - transform.position);
-            transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotationSpeed * Time.deltaTime);
 
             fsm.Transition(ZombieState.Attack);
         }

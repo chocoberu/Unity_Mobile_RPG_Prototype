@@ -33,9 +33,10 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
     protected float timeBetAttack = 5.0f;
     protected float attackRange = 2.0f;
     protected float detectRange = 20.0f;
-    
+
     // 이동 관련
-    protected float rotSpeed = 30.0f;
+    protected float moveSpeed = 3.5f;
+    protected float rotationSpeed = 30.0f;
 
     // 동기화 관련
     protected Vector3 serializedPosition;
@@ -121,7 +122,7 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
         if (false == PhotonNetwork.IsMasterClient)
         {
             transform.position = Vector3.Lerp(transform.position, serializedPosition, Time.deltaTime * pathFinder.speed);
-            transform.rotation = Quaternion.Slerp(transform.rotation, serializedRotation, Time.deltaTime * rotSpeed);
+            transform.rotation = Quaternion.Slerp(transform.rotation, serializedRotation, Time.deltaTime * rotationSpeed);
         }
     }
 
