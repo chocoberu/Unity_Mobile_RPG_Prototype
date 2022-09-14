@@ -50,11 +50,6 @@ public class PlayerHealth : HealthComponent
     [PunRPC]
     public override void OnDamage(float damage, Vector3 hitPosition, Vector3 hitNormal, int AttackerTeamNumber)
     {
-        if (GetTeamNumber() == AttackerTeamNumber)
-        {
-            return;
-        }
-
         if (false == Dead)
         {
             // 피격 이펙트 플레이
@@ -63,7 +58,6 @@ public class PlayerHealth : HealthComponent
         }
 
         base.OnDamage(damage, hitPosition, hitNormal, AttackerTeamNumber);
-
     }
 
     public override int GetTeamNumber()

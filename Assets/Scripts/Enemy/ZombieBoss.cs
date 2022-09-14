@@ -214,7 +214,7 @@ public class ZombieBoss : ZombieBase
     {
         while(false == zombieHealth.Dead)
         {
-            if(minionList.Count < 4)
+            if(minionList.Count < 1)
             {
                 GameObject minionObject = PhotonNetwork.InstantiateRoomObject("ZombieMinion", transform.position + Random.insideUnitSphere * 7.0f, Quaternion.identity);
                 ZombieMinion minion = minionObject.GetComponentInChildren<ZombieMinion>();

@@ -18,7 +18,12 @@ public class PvEGameMode : GameMode
     public GameObject backButton;
     private Text gameClearTitle;
     private Text detail;
-    
+
+    private void Awake()
+    {
+
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -106,7 +111,6 @@ public class PvEGameMode : GameMode
             zombieBoss.GetComponent<ZombieHealth>().OnDeath += OnBossDead;
             return;
         }
-        
     }
 
     public override void EndMatch()

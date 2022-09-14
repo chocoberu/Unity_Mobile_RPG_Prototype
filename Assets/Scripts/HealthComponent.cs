@@ -16,6 +16,11 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     public bool Dead { get; protected set; }
     public event Action OnDeath;
 
+    // UI
+    public GameObject damageWidgetObject;
+    private GameObject damageList;
+    private Stack<DamageTextWidget> damageWidgetStack = new Stack<DamageTextWidget>();
+
     protected virtual void OnEnable()
     {
         Dead = false;
@@ -31,7 +36,38 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
 
     protected virtual void Awake()
     {
-        
+        damageList = new GameObject("DamageWidgetList");
+        damageList.transform.parent = transform;
+
+        AddDamageStack(20);
+    }
+
+    private void AddDamageStack(int count)
+    {
+        if(null == damageWidgetObject)
+        {
+            return;
+        }
+
+        for(int i = 0; i < count; i++)
+        {
+            GameObject go = Instantiate(damageWidgetObject, damageList.transform);
+            DamageTextWidget widget = go.GetComponent<DamageTextWidget>();
+            widget.SetOwner(this);
+
+            damageWidgetStack.Push(widget);
+            go.SetActive(false);
+        }
+    }
+
+    public void PushDamageWidget(DamageTextWidget widget)
+    {
+        if(null == widget)
+        {
+            return;
+        }
+
+        damageWidgetStack.Push(widget);
     }
 
     [PunRPC]
@@ -70,11 +106,23 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
             photonView.RPC("OnDamage", RpcTarget.Others, damage, hitPosition, hitNormal, AttackerTeamNumber);
         }
 
-        Debug.Log($"OnDamage, Damage : {damage}");
+        ShowDamageTextWidget(damage);
         if (Health <= 0.0f && false == Dead)
         {
             Die();
         }
+    }
+
+    private void ShowDamageTextWidget(float damage)
+    {
+        if(damageWidgetStack.Count == 0)
+        {
+            AddDamageStack(10);
+        }
+
+        DamageTextWidget damageWidget = damageWidgetStack.Pop();
+        damageWidget.gameObject.SetActive(true);
+        damageWidget.SetDamageText(transform.position, damage);
     }
 
     public virtual int GetTeamNumber()

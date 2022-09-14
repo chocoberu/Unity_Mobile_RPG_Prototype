@@ -8,10 +8,9 @@ public class DamageTextWidget : MonoBehaviour
     private float presentTime = 0.5f;
     private Text damageText;
 
-    [SerializeField]
-    private int fontSize = 1;
     private Vector3 randomPosValue;
-    private Transform parent;
+    
+    private HealthComponent owner;
 
     private void Awake()
     {
@@ -19,29 +18,32 @@ public class DamageTextWidget : MonoBehaviour
         damageText.enabled = false;
         randomPosValue = Vector3.zero;
 
-        parent = transform.parent;
     }
 
     // Update is called once per frame
     void Update()
     {
-        transform.position = parent.position + Vector3.up * 2.0f + randomPosValue;
         // UI가 카메라를 보도록 설정 (빌보드)
         transform.rotation = Camera.main.transform.rotation; 
     }
 
-    public void SetDamageText(float damage)
+    public void SetOwner(HealthComponent healthComponent)
+    {
+        owner = healthComponent;
+    }
+
+    public void SetDamageText(Vector3 targetPosition, float damage, int fontSize = 1)
     {
         damageText.text = damage.ToString();
 
         randomPosValue = Random.insideUnitSphere * 0.5f;
         randomPosValue.z = -2.0f;
-        Vector3 posisition = parent.position + Vector3.up * 2.0f + randomPosValue;
-        transform.position = posisition;
+        transform.position = targetPosition + Vector3.up * 2.0f + randomPosValue;
 
         damageText.fontSize = fontSize;
         transform.rotation = Camera.main.transform.rotation;
 
+        StartCoroutine(ShowDamageText());
     }
 
     private IEnumerator ShowDamageText()
@@ -50,6 +52,7 @@ public class DamageTextWidget : MonoBehaviour
         yield return new WaitForSeconds(presentTime);
         damageText.enabled = false;
 
-        // TODO : DamageTextWidget을 어디에 보관할지 결정 필요
+        owner.PushDamageWidget(this);
+        gameObject.SetActive(false);
     }
 }
