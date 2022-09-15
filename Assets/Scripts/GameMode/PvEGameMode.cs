@@ -2,6 +2,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,12 +17,13 @@ public class PvEGameMode : GameMode
     // UI
     public GameObject gameClearUI;
     public GameObject backButton;
+    public List<TeamHPWidget> teamHPWidgetList;
     private Text gameClearTitle;
     private Text detail;
 
     private void Awake()
     {
-
+        teamHPWidgetList = transform.GetComponentsInChildren<TeamHPWidget>().ToList();
     }
 
     // Start is called before the first frame update
@@ -43,12 +45,14 @@ public class PvEGameMode : GameMode
     public override void UpdatePlayerList()
     {
         base.UpdatePlayerList();
-
+        
         for(int i = 0; i < playerList.Count; i++)
         {
             playerList[i].OnDeath -= RestartPlayer;
             playerList[i].OnDeath += RestartPlayer;
         }
+
+        UpdatePlayerHealthList();
 
         if (false == PhotonNetwork.IsMasterClient)
         {
@@ -58,6 +62,35 @@ public class PvEGameMode : GameMode
         if (MatchState == EMatchState.PreMatch && playerList.Count == PhotonNetwork.CurrentRoom.PlayerCount)
         {
             MatchState = EMatchState.InProgress;
+        }
+    }
+
+    private void UpdatePlayerHealthList()
+    {
+        // PlayerHealthList 업데이트
+        for (int i = 0; i < teamHPWidgetList.Count; i++)
+        {
+            teamHPWidgetList[i].gameObject.SetActive(false);
+        }
+
+        int healthIndex = 0;
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            if (true == playerList[i].photonView.IsMine)
+            {
+                continue;
+            }
+
+            PlayerHealth player = playerList[i].GetComponent<PlayerHealth>();
+
+            player.OnHPChanged -= teamHPWidgetList[healthIndex].UpdateHP;
+            player.OnHPChanged += teamHPWidgetList[healthIndex].UpdateHP;
+
+            teamHPWidgetList[healthIndex].gameObject.SetActive(true);
+            teamHPWidgetList[healthIndex].SetMaxHP(player.DefaultHealth);
+            teamHPWidgetList[healthIndex].UpdateHP(player.Health);
+            teamHPWidgetList[healthIndex].SetNickname(player.photonView.Controller.NickName);
+            healthIndex++;
         }
     }
 

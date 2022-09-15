@@ -15,6 +15,7 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     public float DefaultHealth { get { return defaultHealth; } }
     public bool Dead { get; protected set; }
     public event Action OnDeath;
+    public event Action<float> OnHPChanged;
 
     // UI
     public GameObject damageWidgetObject;
@@ -80,6 +81,8 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
         {
             hpBarWidget.UpdateHP(Health);
         }
+
+        OnHPChanged?.Invoke(newHealth);
     }
 
     [PunRPC]
@@ -99,6 +102,8 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
             {
                 hpBarWidget.UpdateHP(Health);
             }
+
+            OnHPChanged?.Invoke(Health);
 
             // 클라이언트에 체력 동기화
             photonView.RPC("ApplyUpdatedHealth", RpcTarget.Others, Health, Dead);
@@ -146,7 +151,9 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
             {
                 hpBarWidget.UpdateHP(Health);
             }
-            
+
+            OnHPChanged?.Invoke(Health);
+
             photonView.RPC("ApplyUpdatedHealth", RpcTarget.Others, Health, Dead);
             photonView.RPC("RestoreHealth", RpcTarget.Others, healthAmount);
         }
