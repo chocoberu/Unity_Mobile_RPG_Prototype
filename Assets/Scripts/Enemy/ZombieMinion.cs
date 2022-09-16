@@ -12,7 +12,7 @@ public class ZombieMinion : ZombieBase
         base.Awake();
 
         damage = 15.0f;
-        attackRange = 1.2f;
+        attackRange = 2.5f;
         detectRange = 50.0f;
 
         moveSpeed = 5.0f;
@@ -65,7 +65,7 @@ public class ZombieMinion : ZombieBase
         for (int i = 0; i < colliders.Length; i++)
         {
             HealthComponent entity = colliders[i].GetComponent<HealthComponent>();
-            if (null == entity || true == entity.Dead || this == entity)
+            if (null == entity || true == entity.Dead || this == entity || entity.GetTeamNumber() == zombieHealth.GetTeamNumber())
             {
                 continue;
             }
@@ -154,7 +154,7 @@ public class ZombieMinion : ZombieBase
         pathFinder.SetDestination(target.transform.position);
 
         // 공격 범위 내에 들었을 때
-        if (Vector3.Distance(target.transform.position, transform.position) <= attackRange + 1.0f)
+        if (Vector3.Distance(target.transform.position, transform.position) <= attackRange)
         {
             pathFinder.isStopped = true;
 

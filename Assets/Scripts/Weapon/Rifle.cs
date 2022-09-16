@@ -8,7 +8,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
 {
     [SerializeField]
     private float attackDamage = 10.0f;
-    public float fireDistance = 30.0f;
+    public float fireDistance = 20.0f;
 
     public float AttackDamage { get { return attackDamage; } }
 

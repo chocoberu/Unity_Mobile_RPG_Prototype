@@ -27,6 +27,9 @@ public class ZombieBoss : ZombieBase
 
         moveSpeed = 6.0f;
         pathFinder.speed = moveSpeed;
+
+        attackRange = 3.0f;
+        detectRange = 30.0f;
         
         zombieHealth.OnDeath += OnDead;
         zombieHealth.OnUpdate += UpdatePhase;
@@ -69,7 +72,7 @@ public class ZombieBoss : ZombieBase
         for(int i = 0; i < colliders.Length; i++)
         {
             HealthComponent entity = colliders[i].GetComponent<HealthComponent>();
-            if(null == entity || true == entity.Dead || this == entity)
+            if(null == entity || true == entity.Dead || this == entity || entity.GetTeamNumber() == zombieHealth.GetTeamNumber())
             {
                 continue;
             }
@@ -158,7 +161,7 @@ public class ZombieBoss : ZombieBase
         pathFinder.SetDestination(target.transform.position);
                         
         // 공격 범위 내에 들었을 때
-        if (Vector3.Distance(target.transform.position, transform.position) <= attackRange * 2.0f)
+        if (Vector3.Distance(target.transform.position, transform.position) <= attackRange)
         {
             pathFinder.isStopped = true;
 

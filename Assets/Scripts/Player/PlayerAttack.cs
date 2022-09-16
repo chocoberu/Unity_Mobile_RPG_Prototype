@@ -34,7 +34,6 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
         if(null != weaponObject)
         {
             weaponObject.SetActive(true);
-            //weaponObject.transform.localPosition = new Vector3(0.086f, 1.36f, 0.5f);
             weaponObject.transform.localPosition = weaponLocalPosition;
         }
 
