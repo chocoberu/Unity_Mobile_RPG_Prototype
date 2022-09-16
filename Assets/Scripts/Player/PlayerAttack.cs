@@ -14,6 +14,7 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
 
     // 무기가 총인 경우 필요한 transform
     private Transform gunPivot;
+    private Vector3 weaponLocalPosition;
     private Transform leftHandMount; // 총의 왼쪽 손잡이, 왼손이 위치할 지점
     private Transform rightHandMount; // 총의 오른쪽 손잡이, 오른손이 위치할 지점
 
@@ -25,6 +26,7 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
         animator = GetComponent<Animator>();
         
         gunPivot = transform.Find("ShooterSocket");
+        weaponLocalPosition = gunPivot.transform.localPosition;
     }
 
     private void OnEnable()
@@ -32,11 +34,13 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
         if(null != weaponObject)
         {
             weaponObject.SetActive(true);
+            //weaponObject.transform.localPosition = new Vector3(0.086f, 1.36f, 0.5f);
+            weaponObject.transform.localPosition = weaponLocalPosition;
         }
 
         if(null != weapon)
         {
-            weapon.SetWeaponVisible(true);
+            //weapon.SetWeaponVisible(true);
         }
     }
 
@@ -49,7 +53,7 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
 
         if(null != weapon)
         {
-            weapon.SetWeaponVisible(false);
+            //weapon.SetWeaponVisible(false);
         }
     }
 
@@ -114,7 +118,7 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
     {
         weaponObject = newWeapon;
 
-        weaponObject.transform.SetParent(gameObject.transform);
+        weaponObject.transform.parent = gameObject.transform;
         weaponObject.transform.localPosition = gunPivot.localPosition;
         weapon = weaponObject.GetComponent<IWeaponable>();
 

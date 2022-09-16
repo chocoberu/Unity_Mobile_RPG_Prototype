@@ -12,7 +12,7 @@ public class ZombieMinion : ZombieBase
         base.Awake();
 
         damage = 15.0f;
-        attackRange = 1.5f;
+        attackRange = 1.2f;
         detectRange = 50.0f;
 
         moveSpeed = 5.0f;

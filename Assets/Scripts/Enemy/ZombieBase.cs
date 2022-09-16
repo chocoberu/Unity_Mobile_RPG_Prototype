@@ -33,6 +33,7 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
     protected float timeBetAttack = 5.0f;
     protected float attackRange = 2.0f;
     protected float detectRange = 20.0f;
+    protected ParticleSystem hitEffect;
 
     // 이동 관련
     protected float moveSpeed = 3.5f;
@@ -56,6 +57,8 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
         pathFinder.enabled = false;
         pathFinder.enabled = true;
         pathFinder.isStopped = true;
+
+        hitEffect = transform.Find("SoftRadialPunchMedium").GetComponent<ParticleSystem>();
         
         fsm = new FSM<ZombieState>(this);
     }
@@ -145,6 +148,7 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
 
     protected void NormalAttackHitCheck()
     {
+        hitEffect?.Play();
         if (false == PhotonNetwork.IsMasterClient || true == zombieHealth.Dead)
         {
             return;
@@ -163,7 +167,7 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
                 break;
             }
         }
-
+        
         fsm.Transition(ZombieState.Chasing);
     }
 

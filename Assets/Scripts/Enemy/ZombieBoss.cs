@@ -27,7 +27,7 @@ public class ZombieBoss : ZombieBase
 
         moveSpeed = 6.0f;
         pathFinder.speed = moveSpeed;
-
+        
         zombieHealth.OnDeath += OnDead;
         zombieHealth.OnUpdate += UpdatePhase;
 
@@ -158,7 +158,7 @@ public class ZombieBoss : ZombieBase
         pathFinder.SetDestination(target.transform.position);
                         
         // 공격 범위 내에 들었을 때
-        if (Vector3.Distance(target.transform.position, transform.position) <= attackRange + 1.0f)
+        if (Vector3.Distance(target.transform.position, transform.position) <= attackRange * 2.0f)
         {
             pathFinder.isStopped = true;
 

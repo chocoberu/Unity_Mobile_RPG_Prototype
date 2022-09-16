@@ -52,6 +52,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     private void OnEnable()
     {
         MoveState = PlayerMoveState.Idle;
+        RotationFix = false;
     }
 
     private void FixedUpdate()
@@ -238,6 +239,13 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         //Debug.Log($"angle : {angle}");
 
         return ret;
+    }
+
+    [PunRPC]
+    public void Teleport(Vector3 position, Quaternion rotation)
+    {
+        transform.position = position;
+        transform.rotation = rotation;
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
