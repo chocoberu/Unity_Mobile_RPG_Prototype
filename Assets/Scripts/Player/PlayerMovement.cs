@@ -27,12 +27,14 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     public float Vertical { get; set; }
 
     public bool RotationFix { get; set; }
+    private bool isTeleport = true;
 
     // Components
     private Rigidbody playerRigidbody;
     private Animator animator;
     private PlayerAttack playerAttack;
     private PlayerHealth playerHealth;
+    private PlayerState playerState;
 
     // 동기화 관련
     private Vector3 serializedPosition;
@@ -45,6 +47,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         animator = GetComponent<Animator>();
         playerAttack = GetComponent<PlayerAttack>();
         playerHealth = GetComponent<PlayerHealth>();
+        playerState = GetComponent<PlayerState>();
 
         MoveState = PlayerMoveState.Idle;
     }
@@ -59,6 +62,13 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     {
         if(false == photonView.IsMine)
         {
+            if(true == isTeleport && Vector3.Distance(transform.position, serializedPosition) >= 3.0f)
+            {
+                transform.position = serializedPosition;
+                transform.rotation = serializedRotation;
+                return;
+            }
+
             transform.position = Vector3.Lerp(transform.position, serializedPosition, Time.deltaTime * moveSpeed);
             transform.rotation = Quaternion.Slerp(transform.rotation, serializedRotation, Time.deltaTime * rotateSpeed);
             return;
@@ -239,13 +249,6 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         //Debug.Log($"angle : {angle}");
 
         return ret;
-    }
-
-    [PunRPC]
-    public void Teleport(Vector3 position, Quaternion rotation)
-    {
-        transform.position = position;
-        transform.rotation = rotation;
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

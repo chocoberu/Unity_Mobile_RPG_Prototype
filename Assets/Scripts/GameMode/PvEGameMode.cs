@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public class PvEGameMode : GameMode
 {
     [SerializeField]
-    private float respawnTime = 2.0f;
+    private float respawnTime = 3.0f;
 
     private GameObject playerObject;
     private ZombieBoss zombieBoss;
@@ -172,7 +172,6 @@ public class PvEGameMode : GameMode
             Debug.Log("Restart Player");
             player.transform.position = player.GetComponent<PlayerState>().StartPosition;
             player.SetActive(false);
-            yield return new WaitForSeconds(1.0f);
             player.SetActive(true);
         }
     }
