@@ -101,77 +101,53 @@ public class Rifle : MonoBehaviourPun, IWeaponable
     public void StartAttack()
     {
         //Debug.Log($"{player.gameObject.name} start attack");
-
         if(true == isReloading || PlayerMoveState.Roll == playerMovement.MoveState)
-        {
-            return;
-        }
-        playerMovement.RotationFix = true;
-
-        // 실제 공격 처리는 호스트에 위임
-        photonView.RPC("Server_StartAttack", RpcTarget.MasterClient);
-    }
-
-    public void StopAttack()
-    {
-        Debug.Log("StopAttack() called");
-        photonView.RPC("Server_StopAttack", RpcTarget.MasterClient);
-    }
-
-    [PunRPC]
-    private void Server_StartAttack()
-    {
-        if(false == PhotonNetwork.IsMasterClient)
         {
             return;
         }
 
         isPressed = true;
+        playerMovement.RotationFix = true;
         StartCoroutine(Shot());
     }
 
-    [PunRPC]
-    private void Server_StopAttack()
+    public void StopAttack()
     {
-        if (false == PhotonNetwork.IsMasterClient)
-        {
-            return;
-        }
-
+        //Debug.Log("StopAttack() called");
+        
         isPressed = false;
         StopCoroutine(Shot());
-    }
-
-    [PunRPC]
-    private void SetRotationFix(bool value)
-    {
-        playerMovement.RotationFix = value;
     }
 
     private IEnumerator Shot()
     {
         while(true == isPressed)
         {
-            Attack();
+            // 실제 공격 처리는 호스트에 위임
+            photonView.RPC("Attack", RpcTarget.MasterClient, transform.forward);
             yield return new WaitForSeconds(timeBetFire);
             
             if(false == isPressed)
             {
-                photonView.RPC("SetRotationFix", RpcTarget.All, false);
+                playerMovement.RotationFix = false;
             }
         }
     }
 
-    private void Attack()
+    [PunRPC]
+    private void Attack(Vector3 fireDireciton, PhotonMessageInfo info)
     {
         if(false == PhotonNetwork.IsMasterClient)
         {
             return;
         }
 
+        float lag = (float)(PhotonNetwork.Time - info.SentServerTime);
+
         // 재장전, 구르는 상태인지 체크
-        if(true == isReloading || PlayerMoveState.Roll == playerMovement.MoveState)
+        if(true == isReloading || PlayerMoveState.Roll == playerMovement.MoveState || (float)PhotonNetwork.Time < lastFireTime + timeBetFire - lag)
         {
+            Debug.Log($"PhotonNetwork.time : {PhotonNetwork.Time}, lastFireTime : {lastFireTime}, timeBetFire : {timeBetFire} lag : {lag}");
             StopAttack();
             return;
         }
@@ -180,7 +156,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         Vector3 hitPosition = Vector3.zero;
 
         HealthComponent target = null;
-        if (true == Physics.Raycast(fireTransform.position, fireTransform.forward, out hit, fireDistance))
+        if (true == Physics.Raycast(fireTransform.position, fireDireciton, out hit, fireDistance))
         {
             target = hit.collider.GetComponent<HealthComponent>();
 
@@ -199,7 +175,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
             hitPosition = fireTransform.position + fireTransform.forward * fireDistance;
         }
 
-        lastFireTime = Time.time;
+        lastFireTime = (float)PhotonNetwork.Time - (lag + 0.1f);
         // 발사 이후 처리
         photonView.RPC("OnAttackProcessClient", RpcTarget.All, hitPosition);
     }

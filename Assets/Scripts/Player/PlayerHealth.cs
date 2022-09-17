@@ -50,7 +50,7 @@ public class PlayerHealth : HealthComponent
     [PunRPC]
     public override void OnDamage(float damage, Vector3 hitPosition, Vector3 hitNormal, int AttackerTeamNumber)
     {
-        if (false == Dead)
+        if (false == Dead && AttackerTeamNumber != GetTeamNumber())
         {
             // 피격 이펙트 플레이
             hitEffect.transform.rotation = Quaternion.LookRotation(hitNormal);
