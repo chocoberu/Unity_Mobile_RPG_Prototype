@@ -101,6 +101,9 @@ public class PvEGameMode : GameMode
             GameManager.Instance.SetGameMode(this);
         }
 
+        // DamageText Widget 생성
+        GameManager.Instance.AddObjectInPool("DamageText", 80);
+
         // 알맞는 PlayerStart를 찾아서 Player Spawn
         GameObject[] playerStartList = GameObject.FindGameObjectsWithTag("BluePlayerStart");
         string playerStartName = $"BluePlayer{PhotonNetwork.LocalPlayer.ActorNumber}";

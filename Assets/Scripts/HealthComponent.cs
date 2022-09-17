@@ -20,7 +20,7 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     // UI
     public GameObject damageWidgetObject;
     private GameObject damageList;
-    private Stack<DamageTextWidget> damageWidgetStack = new Stack<DamageTextWidget>();
+    //private Stack<DamageTextWidget> damageWidgetStack = new Stack<DamageTextWidget>();
 
     protected virtual void OnEnable()
     {
@@ -40,10 +40,10 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
         damageList = new GameObject("DamageWidgetList");
         damageList.transform.parent = transform;
 
-        AddDamageStack(20);
+        //AddDamageStack(20);
     }
 
-    private void AddDamageStack(int count)
+    /*private void AddDamageStack(int count)
     {
         if(null == damageWidgetObject)
         {
@@ -59,9 +59,9 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
             damageWidgetStack.Push(widget);
             go.SetActive(false);
         }
-    }
+    }*/
 
-    public void PushDamageWidget(DamageTextWidget widget)
+    /*public void PushDamageWidget(DamageTextWidget widget)
     {
         if(null == widget)
         {
@@ -69,7 +69,7 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
         }
 
         damageWidgetStack.Push(widget);
-    }
+    }*/
 
     [PunRPC]
     public void ApplyUpdatedHealth(float newHealth, bool newDead)
@@ -120,13 +120,22 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
 
     private void ShowDamageTextWidget(float damage)
     {
-        if(damageWidgetStack.Count == 0)
+        /*if(damageWidgetStack.Count == 0)
         {
             AddDamageStack(10);
         }
 
         DamageTextWidget damageWidget = damageWidgetStack.Pop();
         damageWidget.gameObject.SetActive(true);
+        damageWidget.SetDamageText(transform.position, damage);*/
+
+        GameObject damageTextObject = GameManager.Instance.PopObjectInPool("DamageText");
+        DamageTextWidget damageWidget = damageTextObject?.GetComponent<DamageTextWidget>();
+        if(null == damageWidget)
+        {
+            return;
+        }
+
         damageWidget.SetDamageText(transform.position, damage);
     }
 

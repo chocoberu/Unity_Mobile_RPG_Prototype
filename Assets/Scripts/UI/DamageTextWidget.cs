@@ -51,7 +51,6 @@ public class DamageTextWidget : MonoBehaviour
         yield return new WaitForSeconds(presentTime);
         damageText.enabled = false;
 
-        owner.PushDamageWidget(this);
-        gameObject.SetActive(false);
+        GameManager.Instance.PushObjectInPool(gameObject);
     }
 }
