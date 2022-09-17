@@ -188,6 +188,9 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
         {
             serializedPosition = (Vector3)stream.ReceiveNext();
             serializedRotation = (Quaternion)stream.ReceiveNext();
+
+            float lag = Mathf.Abs((float)(PhotonNetwork.Time - info.SentServerTime));
+            serializedPosition += lag * zombieRigidbody.velocity;
         }
     }
 }
