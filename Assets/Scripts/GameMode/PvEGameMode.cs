@@ -102,7 +102,7 @@ public class PvEGameMode : GameMode
         }
 
         // DamageText Widget 생성
-        GameManager.Instance.AddObjectInPool("DamageText", 80);
+        GameManager.Instance.AddObjectInPool(DamageTextWidget.WidgetPath, 80);
 
         // 알맞는 PlayerStart를 찾아서 Player Spawn
         GameObject[] playerStartList = GameObject.FindGameObjectsWithTag("BluePlayerStart");

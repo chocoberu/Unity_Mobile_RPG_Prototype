@@ -19,8 +19,6 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
 
     // UI
     public GameObject damageWidgetObject;
-    private GameObject damageList;
-    //private Stack<DamageTextWidget> damageWidgetStack = new Stack<DamageTextWidget>();
 
     protected virtual void OnEnable()
     {
@@ -37,39 +35,8 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
 
     protected virtual void Awake()
     {
-        damageList = new GameObject("DamageWidgetList");
-        damageList.transform.parent = transform;
-
-        //AddDamageStack(20);
+        
     }
-
-    /*private void AddDamageStack(int count)
-    {
-        if(null == damageWidgetObject)
-        {
-            return;
-        }
-
-        for(int i = 0; i < count; i++)
-        {
-            GameObject go = Instantiate(damageWidgetObject, damageList.transform);
-            DamageTextWidget widget = go.GetComponent<DamageTextWidget>();
-            widget.SetOwner(this);
-
-            damageWidgetStack.Push(widget);
-            go.SetActive(false);
-        }
-    }*/
-
-    /*public void PushDamageWidget(DamageTextWidget widget)
-    {
-        if(null == widget)
-        {
-            return;
-        }
-
-        damageWidgetStack.Push(widget);
-    }*/
 
     [PunRPC]
     public void ApplyUpdatedHealth(float newHealth, bool newDead)
@@ -120,16 +87,7 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
 
     private void ShowDamageTextWidget(float damage)
     {
-        /*if(damageWidgetStack.Count == 0)
-        {
-            AddDamageStack(10);
-        }
-
-        DamageTextWidget damageWidget = damageWidgetStack.Pop();
-        damageWidget.gameObject.SetActive(true);
-        damageWidget.SetDamageText(transform.position, damage);*/
-
-        GameObject damageTextObject = GameManager.Instance.PopObjectInPool("DamageText");
+        GameObject damageTextObject = GameManager.Instance.PopObjectInPool(DamageTextWidget.WidgetPath);
         DamageTextWidget damageWidget = damageTextObject?.GetComponent<DamageTextWidget>();
         if(null == damageWidget)
         {

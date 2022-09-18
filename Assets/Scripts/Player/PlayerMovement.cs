@@ -35,6 +35,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     private PlayerAttack playerAttack;
     private PlayerHealth playerHealth;
     private PlayerState playerState;
+    private PlayerInput playerInput;
 
     // 동기화 관련
     private Vector3 serializedPosition;
@@ -48,7 +49,8 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         playerAttack = GetComponent<PlayerAttack>();
         playerHealth = GetComponent<PlayerHealth>();
         playerState = GetComponent<PlayerState>();
-
+        playerInput = GetComponent<PlayerInput>();
+        
         MoveState = PlayerMoveState.Idle;
     }
 
@@ -122,7 +124,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     }
 
     // InputSystem Callback
-    private void OnMovement(InputValue value)
+    public void OnMovement(InputAction.CallbackContext context)
     {
         // 로컬에서만 입력 처리
         if(false == photonView.IsMine)
@@ -130,7 +132,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
             return;
         }
 
-        Vector2 movement = value.Get<Vector2>();
+        Vector2 movement = context.ReadValue<Vector2>();
 #if UNITY_ANDROID || UNITY_IOS
         Vector2 direction = GetInputMovement(movement);
         movement = Vector2.Dot(movement, direction) * direction;
@@ -153,7 +155,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         }
     }
 
-    private void OnRoll(InputValue value)
+    public void OnRoll(InputAction.CallbackContext context)
     {
         // 로컬에서만 입력 처리
         if(false == photonView.IsMine)

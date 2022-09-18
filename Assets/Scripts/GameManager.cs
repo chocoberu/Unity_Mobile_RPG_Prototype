@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     // 간단한 Object pool
     private Dictionary<string, Queue<GameObject>> objectPool = new Dictionary<string, Queue<GameObject>>();
-    private GameObject poolObject;
+    private ObjectPool poolObject;
 
     private void Awake()
     {
@@ -32,7 +32,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             Destroy(gameObject);
         }
 
-        poolObject = new GameObject("Object Pool");
+        poolObject = new ObjectPool();
     }
 
     // Start is called before the first frame update
@@ -70,59 +70,21 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public bool AddObjectInPool(string name, int count)
     {
-        GameObject original = Resources.Load<GameObject>(name);
-        if(null == original)
-        {
-            return false;
-        }
-
-        GameObject root = new GameObject(name);
-        root.transform.SetParent(poolObject.transform);
-        Queue<GameObject> queue = new Queue<GameObject>();
-
-        for(int i = 0; i < count; i++)
-        {
-            GameObject gameObject = Instantiate<GameObject>(original, root.transform);
-            if(null == gameObject)
-            {
-                return false;
-            }
-            gameObject.name = name;
-            queue.Enqueue(gameObject);
-            gameObject.SetActive(false);
-        }
-        objectPool.Add(name, queue);
-        return true;
+        return poolObject.AddObjects(name, count);
     }
 
     public GameObject PopObjectInPool(string name)
     {
-        GameObject ret = null;
-        Queue<GameObject> queue = null;
-        if(false == objectPool.TryGetValue(name, out queue))
-        {
-            return null;
-        }
-
-        if(queue.Count == 0)
-        {
-            AddObjectInPool(name, 10);
-        }
-        ret = queue.Dequeue();
-        ret.SetActive(true);
-        return ret;
+        return poolObject.PopObject(name);
     }
 
-    public bool PushObjectInPool(GameObject gameObject)
+    public void PushObjectInPool(GameObject gameObject)
     {
-        Queue<GameObject> queue = null;
-        if(false == objectPool.TryGetValue(gameObject.name, out queue))
+        if(false == poolObject.PushObject(gameObject))
         {
-            return false;
+            Debug.Log($"{gameObject.name}이 Object pool 내부에 없음. Destroy() 처리");
+            Destroy(gameObject);
         }
-        queue.Enqueue(gameObject);
-        gameObject.SetActive(false);
-        return true;
     }
 
     public void SetGameMode(GameMode newGameMode)

@@ -9,8 +9,8 @@ public class DamageTextWidget : MonoBehaviour
     private Text damageText;
 
     private Vector3 randomPosValue;
-    
-    private HealthComponent owner;
+
+    public static readonly string WidgetPath = "DamageTextWidget";
 
     private void Awake()
     {
@@ -24,11 +24,6 @@ public class DamageTextWidget : MonoBehaviour
     {
         // UI가 카메라를 보도록 설정 (빌보드)
         transform.rotation = Camera.main.transform.rotation; 
-    }
-
-    public void SetOwner(HealthComponent healthComponent)
-    {
-        owner = healthComponent;
     }
 
     public void SetDamageText(Vector3 targetPosition, float damage, int fontSize = 1)

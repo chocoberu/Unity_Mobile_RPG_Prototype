@@ -69,28 +69,25 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
         
     }
 
-    private void OnAttack(InputValue value)
+    public void OnAttack(InputAction.CallbackContext context)
     {
         if(false == photonView.IsMine || false == enabled)
         {
             return;
         }
 
-        if(true == value.isPressed)
+        switch(context.phase)
         {
-            //Debug.Log("Pressed");
-            if(weapon != null)
-            {
-                weapon.StartAttack();
-            }
-        }
-        else
-        {
-            //Debug.Log("Released");
-            if (weapon != null)
-            {
-                weapon.StopAttack();
-            }
+            case InputActionPhase.Started:
+                {
+                    weapon?.StartAttack();
+                }
+                break;
+            case InputActionPhase.Canceled:
+                {
+                    weapon?.StopAttack();
+                }
+                break;
         }
     }
 
