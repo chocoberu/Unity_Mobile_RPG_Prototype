@@ -24,11 +24,13 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     private EUIMode uiMode;
     private FSM<EUIMode> fsm;
 
+    // UI 
     private BackgroundPanel background;
     private LobbyPanel lobbyPanel;
     private RoomPanel roomPanel;
     private NicknamePanel nicknamePanel;
     private CreateRoomPanel createRoomPanel;
+    private ErrorMessage errorMessage;
 
     private void Awake()
     {
@@ -44,6 +46,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         roomPanel = Utils.FindChild<RoomPanel>(canvas, "RoomPanel", false);
         nicknamePanel = Utils.FindChild<NicknamePanel>(canvas, "NicknamePanel", false);
         createRoomPanel = Utils.FindChild<CreateRoomPanel>(canvas, "CreateRoomPanel", false);
+        errorMessage = Utils.FindChild<ErrorMessage>(canvas, "ErrorMessage", false);
 
         background.SetConectionInfoText("");
         background.onClickPrevButton += OnClickPrevButton;
@@ -57,6 +60,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         createRoomPanel.onClickConfirmButton += OnClickRoomConfirmButton;
 
         nicknamePanel.onClickConfirmButton += OnClickNicknameConfirmButton;
+        errorMessage.onClickConfirmButton += OnClickErrorMessageConfirmButton;
 
         // 게임 버전 설정
         PhotonNetwork.GameVersion = gameVersion;
@@ -185,8 +189,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         if (true == string.IsNullOrEmpty(nickname))
         {
-            // TODO : Error Message Panel 추가 예정
             Debug.Log("Error : OnClickConfirmButton(), NicknameInputfield is empty");
+            errorMessage.gameObject.SetActive(true);
+            errorMessage.SetErrorMessage("닉네임을 입력하세요");
             return;
         }
 
@@ -208,14 +213,25 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         if (true == string.IsNullOrEmpty(roomName))
         {
-            // TODO : Error Message Panel 추가 예정
             Debug.Log("Error : OnClickRoomConfirmButton(), RoomNameInputField is empty");
+            errorMessage.gameObject.SetActive(true);
+            errorMessage.SetErrorMessage("방 제목을 입력하세요");
+            return;
+        }
+
+        // TODO : PvP 구현 이후 삭제 예정
+        if(1 == gameType)
+        {
+            errorMessage.gameObject.SetActive(true);
+            errorMessage.SetErrorMessage("PvP는 개발 예정입니다");
             return;
         }
 
         if (PhotonNetwork.CountOfRooms >= MaxRoomCount)
         {
             Debug.Log("Error : OnClickRoomConfirmButton(), Room Full");
+            errorMessage.gameObject.SetActive(true);
+            errorMessage.SetErrorMessage("방을 더 만들 수 없습니다");
             return;
         }
 
@@ -270,6 +286,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             if(false == IsStartGame())
             {
                 Debug.Log("Log : 게임을 시작할 수 없습니다. 모든 플레이어가 준비된 상태여야 합니다.");
+                errorMessage.gameObject.SetActive(true);
+                errorMessage.SetErrorMessage("모든 플레이어가 준비된 상태가 아닙니다");
                 return;
             }
             else
@@ -295,6 +313,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         {
             SetReadyState();
         }
+    }
+
+    public void OnClickErrorMessageConfirmButton()
+    {
+        errorMessage.gameObject.SetActive(false);
     }
 
     public void Lobby_Enter()
@@ -344,7 +367,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     private void ChangeUIMode(EUIMode mode)
     {
-        Debug.Log($"ChangeUIMode() called, mode : {mode}");
+        Debug.Log($"ChangeUIMode() called, current : {uiMode} next : {mode}");
         fsm.Transition(mode);
         uiMode = mode;
     }
