@@ -63,7 +63,6 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
         if(true == photonView.IsMine)
         {
             weaponObject = PhotonNetwork.Instantiate("TestWeapon", transform.position, Quaternion.identity);
-
             SetupWeapon(weaponObject);
         }
         

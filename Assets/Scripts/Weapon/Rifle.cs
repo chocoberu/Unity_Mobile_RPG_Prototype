@@ -1,4 +1,5 @@
 using Photon.Pun;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,9 @@ public class Rifle : MonoBehaviourPun, IWeaponable
     public float fireDistance = 20.0f;
 
     public float AttackDamage { get { return attackDamage; } }
+
+    public WeaponType weaponType { get { return _weaponType; } }
+    private WeaponType _weaponType = WeaponType.Gun;
 
     private PlayerAttack playerAttack;
     private PlayerHealth playerHealth;
@@ -34,8 +38,20 @@ public class Rifle : MonoBehaviourPun, IWeaponable
     public AudioClip shotClip;
     public AudioClip reloadClip;
 
-    public int magAmmo; // 현재 탄창의 탄알 수 
-    public int magCapacity = 10; // 탄창 용량
+    // 현재 탄창의 탄알 수 
+    private int magAmmo;
+    public int MagAmmo
+    {
+        get { return magAmmo; }
+        private set
+        {
+            magAmmo = value;
+            OnUpdateAmmo?.Invoke(magAmmo);
+        }
+    }
+
+    [SerializeField]
+    private int magCapacity = 10; // 탄창 용량
 
     [SerializeField]
     private float timeBetFire = 0.2f; // 공격 속도
@@ -45,6 +61,8 @@ public class Rifle : MonoBehaviourPun, IWeaponable
 
     private bool isPressed;
     private bool isReloading;
+
+    public Action<int> OnUpdateAmmo;
 
     private void Awake()
     {
@@ -59,6 +77,13 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         bulletLineRenderer.positionCount = 2;
         // 라인 렌더러 비활성화
         bulletLineRenderer.enabled = false;
+
+        GameObject virtualPad = GameObject.Find("Virtual Pad");
+        RightButtons rightButtons = Utils.FindChild<RightButtons>(virtualPad, null, true);
+        if(null != rightButtons)
+        {
+            OnUpdateAmmo += rightButtons.OnUpdateAttackCount;
+        }
     }
 
     private void OnEnable()
@@ -83,7 +108,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
             playerAttack.SetupWeapon(gameObject);
         }
 
-        magAmmo = magCapacity;
+        MagAmmo = magCapacity;
         lastFireTime = 0.0f;
         
         isPressed = false;
@@ -142,12 +167,12 @@ public class Rifle : MonoBehaviourPun, IWeaponable
             return;
         }
 
-        float lag = (float)(PhotonNetwork.Time - info.SentServerTime);
+        float lag = Mathf.Min(0.0f, (float)(PhotonNetwork.Time - info.SentServerTime));
 
         // 재장전, 구르는 상태인지 체크
         if(true == isReloading || PlayerMoveState.Roll == playerMovement.MoveState || (float)PhotonNetwork.Time < lastFireTime + timeBetFire - lag)
         {
-            Debug.Log($"PhotonNetwork.time : {PhotonNetwork.Time}, lastFireTime : {lastFireTime}, timeBetFire : {timeBetFire} lag : {lag}");
+            Debug.Log($"PhotonNetwork.time : {PhotonNetwork.Time}, lastFireTime : {(double)lastFireTime}, timeBetFire : {(double)timeBetFire} lag : {(double)lag}");
             StopAttack();
             return;
         }
@@ -175,6 +200,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
             hitPosition = fireTransform.position + fireTransform.forward * fireDistance;
         }
 
+        // TODO : 임시 처리 방식, 수정 필요
         lastFireTime = (float)PhotonNetwork.Time - (lag + 0.1f);
         // 발사 이후 처리
         photonView.RPC("OnAttackProcessClient", RpcTarget.All, hitPosition);
@@ -183,7 +209,8 @@ public class Rifle : MonoBehaviourPun, IWeaponable
     [PunRPC]
     private void OnAttackProcessClient(Vector3 hitPosition)
     {
-        magAmmo--;
+        MagAmmo--;
+        
         if (magAmmo <= 0)
         {
             StopAttack();
@@ -218,7 +245,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         playerAnimator.SetTrigger("Reload");
         yield return new WaitForSeconds(reloadTime);
 
-        magAmmo += magCapacity;
+        MagAmmo += magCapacity;
         isReloading = false;
     }
 }
