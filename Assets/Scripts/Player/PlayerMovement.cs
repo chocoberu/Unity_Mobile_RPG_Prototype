@@ -166,11 +166,6 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         if(false == playerHealth.Dead && MoveState != PlayerMoveState.Roll)
         {
             MoveState = PlayerMoveState.Roll;
-            rollDirection = new Vector3(Horizon, 0.0f, Vertical);
-            if(rollDirection == Vector3.zero)
-            {
-                rollDirection = new Vector3(transform.forward.x, 0.0f, transform.forward.z).normalized;
-            }
             photonView.RPC("OnRollProcessClient", RpcTarget.All);
         }
     }
@@ -184,6 +179,13 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     private void OnRollProcessClient()
     {
         MoveState = PlayerMoveState.Roll;
+        
+        rollDirection = new Vector3(Horizon, 0.0f, Vertical);
+        if (rollDirection == Vector3.zero)
+        {
+            rollDirection = new Vector3(transform.forward.x, 0.0f, transform.forward.z).normalized;
+        }
+
         Quaternion rot = Quaternion.LookRotation(rollDirection);
         transform.rotation = rot;
 
@@ -264,6 +266,9 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         {
             serializedPosition = (Vector3)stream.ReceiveNext();
             serializedRotation = (Quaternion)stream.ReceiveNext();
+
+            float lag = Mathf.Abs((float)(PhotonNetwork.Time - info.SentServerTime));
+            serializedPosition += lag * playerRigidbody.velocity;
         }
     }
 

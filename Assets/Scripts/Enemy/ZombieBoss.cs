@@ -109,7 +109,7 @@ public class ZombieBoss : ZombieBase
         if(true == PhotonNetwork.IsMasterClient)
         {
             pathFinder.isStopped = false;
-            Vector3 randomPatrolPos = transform.position + Random.insideUnitSphere * 5.0f;
+            Vector3 randomPatrolPos = GetRandomPointOnNavMesh(transform.position, 10.0f);
             pathFinder.SetDestination(randomPatrolPos);
         }
     }

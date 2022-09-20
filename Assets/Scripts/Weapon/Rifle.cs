@@ -40,16 +40,8 @@ public class Rifle : MonoBehaviourPun, IWeaponable
 
     // 현재 탄창의 탄알 수 
     private int magAmmo;
-    public int MagAmmo
-    {
-        get { return magAmmo; }
-        private set
-        {
-            magAmmo = value;
-            OnUpdateAmmo?.Invoke(magAmmo);
-        }
-    }
-
+    public int MagAmmo { get { return magAmmo; } private set { magAmmo = value; OnUpdateAmmo?.Invoke(magAmmo); } }
+    
     [SerializeField]
     private int magCapacity = 10; // 탄창 용량
 
@@ -108,7 +100,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
             playerAttack.SetupWeapon(gameObject);
         }
 
-        MagAmmo = magCapacity;
+        MagAmmo = magCapacity;        
         lastFireTime = 0.0f;
         
         isPressed = false;
@@ -167,10 +159,10 @@ public class Rifle : MonoBehaviourPun, IWeaponable
             return;
         }
 
-        float lag = Mathf.Min(0.0f, (float)(PhotonNetwork.Time - info.SentServerTime));
-
-        // 재장전, 구르는 상태인지 체크
-        if(true == isReloading || PlayerMoveState.Roll == playerMovement.MoveState || (float)PhotonNetwork.Time < lastFireTime + timeBetFire - lag)
+        float lag = Mathf.Max(0.0f, (float)(PhotonNetwork.Time - info.SentServerTime));
+        
+        // Reload, Roll, 연사 서버 검증
+        if(true == isReloading || PlayerMoveState.Roll == playerMovement.MoveState || (float)Time.time < lastFireTime + timeBetFire - lag)
         {
             Debug.Log($"PhotonNetwork.time : {PhotonNetwork.Time}, lastFireTime : {(double)lastFireTime}, timeBetFire : {(double)timeBetFire} lag : {(double)lag}");
             StopAttack();
@@ -200,8 +192,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
             hitPosition = fireTransform.position + fireTransform.forward * fireDistance;
         }
 
-        // TODO : 임시 처리 방식, 수정 필요
-        lastFireTime = (float)PhotonNetwork.Time - (lag + 0.1f);
+        lastFireTime = Time.time - lag;
         // 발사 이후 처리
         photonView.RPC("OnAttackProcessClient", RpcTarget.All, hitPosition);
     }
