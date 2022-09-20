@@ -211,7 +211,6 @@ public class ZombieBoss : ZombieBase
         pathFinder.speed = moveSpeed * 1.5f;
         zombieRenderer.material.color = Color.red;
 
-        // TODO : 미니언 스폰 코루틴 동작
         if(true == PhotonNetwork.IsMasterClient)
         {
             StartCoroutine(CoSpawnMinion());

@@ -41,13 +41,6 @@ public class HPBarWidget : MonoBehaviour
         hpBarSlider.value = CurrentHp;
     }
 
-    public void OnUdpate()
-    {
-        Transform parent = transform.parent;
-        transform.position = parent.position + Vector3.up * (parent.GetComponent<Collider>().bounds.size.y + 0.2f);
-        transform.rotation = Camera.main.transform.rotation; // UI가 카메라를 보도록 설정 (빌보드)
-    }
-
     // Update is called once per frame
     void Update()
     {

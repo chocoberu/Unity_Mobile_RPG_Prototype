@@ -292,7 +292,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             }
             else
             {
-                // TODO : Town Scene으로 이동, GameType에 따라 다른 GameMode를 사용하도록 설정 필요
                 switch((int)PhotonNetwork.CurrentRoom.CustomProperties["GameType"])
                 {
                     case 0:
