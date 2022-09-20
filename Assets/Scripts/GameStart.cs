@@ -26,14 +26,12 @@ public class GameStart : MonoBehaviour
         MultiPlayButton.onClick.AddListener(OnClickMultiPlayButton);
         ExitButton.onClick.AddListener(OnClickExitButton);
 
-        // TODO : 멀티 플레이 작업을 우선하기 위해
-        SinglePlayButton.interactable = false;
     }
 
     public void OnClickSinglePlayButton()
     {
-        // TODO : SinglePlay 모드로 작업
-        // 같은 Scene을 쓰면서 Unreal처럼 모드 별로 다른 GameMode를 사용하는 방식
+        // TODO : 캐릭터 선택 or 무기 선택 UI 이후에 진입하도록 수정
+        SceneManager.LoadScene("Town");
     }
 
     public void OnClickMultiPlayButton()

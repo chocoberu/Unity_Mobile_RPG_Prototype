@@ -2,19 +2,18 @@ using Photon.Pun;
 using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class LobbyManager : MonoBehaviourPunCallbacks
 {
     private string gameVersion = "0.1";
 
-    public const int MaxRoomCount = 5;
-    public const int MaxPlayerCount = 4;
+    public static readonly int MaxRoomCount = 5;
+    public static readonly int MaxPlayerCount = 4;
 
-    enum EUIMode
+    private enum EUIMode
     {
         Lobby = 0,
         Nickname,
@@ -22,102 +21,75 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         Room
     }
 
-    EUIMode uiMode;
-    
-    public GameObject nicknamePanel;
-    public GameObject lobbyPanel;
-    public GameObject roomPanel;
-    public GameObject createRoomPanel;
+    private EUIMode uiMode;
+    private FSM<EUIMode> fsm;
 
-    public Text connectionInfoText;
-    public TMP_InputField nicknameInputField;
-    public Button nicknameConfirmButton;
+    // UI 
+    private BackgroundPanel background;
+    private LobbyPanel lobbyPanel;
+    private RoomPanel roomPanel;
+    private NicknamePanel nicknamePanel;
+    private CreateRoomPanel createRoomPanel;
+    private ErrorMessage errorMessage;
 
-    // Lobby
-    public Button prevButton;
-    public Button createRoomButton;
-
-    // Room Panel
-    public Button readyStartButton;
-    public Text roomName;
-
-    public List<Button> roomButtonList;
-    public List<Button> playerButtonList;
-
-    // Crete Room Panel
-    public TMP_InputField roomNameInputField;
-    public TMP_Dropdown gameTypeDropdown;
-    public Button roomConfirmButton;
-    public Button roomCancleButton;
-
-    // Player List
-    private List<Player> playerList;
+    private void Awake()
+    {
+        fsm = new FSM<EUIMode>(this);
+    }
 
     // Start is called before the first frame update
     void Start()
     {
-        connectionInfoText = GameObject.Find("ConnectionInfoText").GetComponent<Text>();
-        nicknamePanel = GameObject.Find("NicknamePanel");
-        nicknameInputField = GameObject.Find("NicknameInputField").GetComponent<TMP_InputField>();
-        nicknameConfirmButton = GameObject.Find("NicknameConfirmButton").GetComponent<Button>();
+        GameObject canvas = GameObject.Find("Canvas");
+        background = Utils.FindChild<BackgroundPanel>(canvas, "Background", false);
+        lobbyPanel = Utils.FindChild<LobbyPanel>(canvas, "LobbyPanel", false);
+        roomPanel = Utils.FindChild<RoomPanel>(canvas, "RoomPanel", false);
+        nicknamePanel = Utils.FindChild<NicknamePanel>(canvas, "NicknamePanel", false);
+        createRoomPanel = Utils.FindChild<CreateRoomPanel>(canvas, "CreateRoomPanel", false);
+        errorMessage = Utils.FindChild<ErrorMessage>(canvas, "ErrorMessage", false);
 
-        prevButton = GameObject.Find("PrevButton").GetComponent<Button>();
-        createRoomButton = GameObject.Find("CreateRoomButton").GetComponent<Button>();
+        background.SetConectionInfoText("");
+        background.onClickPrevButton += OnClickPrevButton;
+        
+        lobbyPanel.onClickCreateRoomButton += OnClickCreateRoomButton;
+        lobbyPanel.onClickNicknameButton += OnClickNicknameButton;
+        lobbyPanel.onClickRoomButton += OnClickRoomButton;
 
-        readyStartButton = GameObject.Find("ReadyStartButton").GetComponent<Button>();
-        roomName = GameObject.Find("RoomName").GetComponent<Text>();
+        roomPanel.onClickReadyStartButton += OnClickReadyStartButton;
+        createRoomPanel.onClickCancleButton += OnClickRoomCancleButton;
+        createRoomPanel.onClickConfirmButton += OnClickRoomConfirmButton;
 
-        lobbyPanel = GameObject.Find("LobbyPanel");
-        roomPanel = GameObject.Find("RoomPanel");
-        createRoomPanel = GameObject.Find("CreateRoomPanel");
-
-        roomNameInputField = GameObject.Find("RoomNameInputField").GetComponent<TMP_InputField>();
-        gameTypeDropdown = GameObject.Find("GameTypeDropdown").GetComponent<TMP_Dropdown>();
-        roomConfirmButton = GameObject.Find("RoomConfirmButton").GetComponent<Button>();
-        roomCancleButton = GameObject.Find("RoomCancleButton").GetComponent<Button>();
-
-        if (null != connectionInfoText)
-        {
-            connectionInfoText.text = "";
-        }
-
-        nicknameConfirmButton.onClick.AddListener(OnClickNicknameConfirmButton);
-        prevButton.onClick.AddListener(OnClickPrevButton);
-        createRoomButton.onClick.AddListener(OnClickCreateRoomButton);
-
-        readyStartButton.onClick.AddListener(OnClickReadyStartButton);
-
-        roomConfirmButton.onClick.AddListener(OnClickRoomConfirmButton);
-        roomCancleButton.onClick.AddListener(OnClickRoomCancleButton);
+        nicknamePanel.onClickConfirmButton += OnClickNicknameConfirmButton;
+        errorMessage.onClickConfirmButton += OnClickErrorMessageConfirmButton;
 
         // 게임 버전 설정
         PhotonNetwork.GameVersion = gameVersion;
 
-        ChangeUIMode(EUIMode.Nickname);
+        if(null == GameInstance.Instance.nickname || false == PhotonNetwork.IsConnected)
+        {
+            fsm.StartFSM(EUIMode.Nickname);
+        }
+        else
+        {
+            fsm.StartFSM(EUIMode.Lobby);
+        }
     }
 
     public override void OnConnectedToMaster()
     {
-        base.OnConnectedToMaster();
-
-        connectionInfoText.text = "complete connection to master server";
-
+        // TODO : public enum으로 처리?
+        background.SetConectionInfoText("complete connection to master server");
         JoinLobby();
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        connectionInfoText.text = "failed connect to master server";
-
-        // 마스터 서버에 접속을 재시도
-        //ConnectMasterServer();
+        background.SetConectionInfoText("failed connect to master server");
     }
 
     public override void OnJoinedLobby()
     {
-        base.OnJoinedLobby();
-
-        connectionInfoText.text = "";
+        background.SetConectionInfoText("");
         PhotonNetwork.LocalPlayer.CustomProperties.Clear();
         PhotonNetwork.LocalPlayer.CustomProperties.TryAdd("ready", false);
 
@@ -126,50 +98,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
-        base.OnRoomListUpdate(roomList);
-
-        // 초기화
-        foreach(var room in roomButtonList)
-        {
-            Text RoomNameText = room.transform.Find("RoomNameText").GetComponent<Text>();
-            Text PlayerCount = room.transform.Find("PlayerCount").GetComponent<Text>();
-            Text GameType = room.transform.Find("GameType").GetComponent<Text>();
-
-            RoomNameText.text = "No Room";
-            PlayerCount.text = $"0 / 4";
-            GameType.text = "None";
-
-            room.interactable = false;
-            room.onClick.RemoveAllListeners();
-        }
-
-        int index = 0;
-        foreach (var room in roomList)
-        {
-            if(room.PlayerCount <= 0)
-            {
-                continue;
-            }
-
-            Text RoomNameText = roomButtonList[index].transform.Find("RoomNameText").GetComponent<Text>();
-            Text PlayerCount = roomButtonList[index].transform.Find("PlayerCount").GetComponent<Text>();
-            Text GameType = roomButtonList[index].transform.Find("GameType").GetComponent<Text>();
-
-            RoomNameText.text = room.Name;
-            PlayerCount.text = $"{room.PlayerCount} / {room.MaxPlayers}";
-
-            roomButtonList[index].interactable = true;
-            roomButtonList[index].onClick.AddListener(() =>
-            {
-                PhotonNetwork.JoinRoom(RoomNameText.text);
-            });
-
-            index++;
-            if (index >= 5)
-            {
-                break;
-            }
-        }
+        lobbyPanel.UpdateRoomList(roomList);
     }
 
     public override void OnJoinRandomFailed(short returnCode, string message)
@@ -196,16 +125,18 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         string gameType = "";
         if((int)type == 0)
         {
+            GameInstance.Instance.GameType = GameInstance.EGameType.PvE;
             gameType = "PvE";
         }
         else if((int)type == 1)
         {
+            GameInstance.Instance.GameType = GameInstance.EGameType.PvP;
             gameType = "PvP";
         }
-        roomName.text = $"{PhotonNetwork.CurrentRoom.Name} / {gameType}";
-        Debug.Log($"{roomName.text}");
+
+        roomPanel.SetRoomName($"{PhotonNetwork.CurrentRoom.Name} / {gameType}");
+        roomPanel.SetReadyStartButton(PhotonNetwork.IsMasterClient);
         
-        // UpdatePlayerList
         UpdateRoomPlayerList();
     }
 
@@ -237,7 +168,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         }
         newPlayer.SetCustomProperties(customProperties);
 
-        //playerList.Add(newPlayer);
         Debug.Log($"Player {newPlayer.NickName} enter");
         
         // UpdatePlayerList
@@ -255,63 +185,65 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         UpdateRoomPlayerList();
     }
 
-    public void OnClickNicknameConfirmButton()
+    public void OnClickNicknameConfirmButton(string nickname)
     {
-        if(null == nicknameInputField)
+        if (true == string.IsNullOrEmpty(nickname))
         {
-            Debug.Log("Error : OnClickConfirmButton(), NicknameInputfield is null");
-            return;
-        }
-
-        if(true == string.IsNullOrEmpty(nicknameInputField.text))
-        {
-            // TODO : Error Message Panel 추가 예정
             Debug.Log("Error : OnClickConfirmButton(), NicknameInputfield is empty");
+            errorMessage.gameObject.SetActive(true);
+            errorMessage.SetErrorMessage("닉네임을 입력하세요");
             return;
         }
 
-        PhotonNetwork.NickName = nicknameInputField.text;
-        Debug.Log($"Nickname = {PhotonNetwork.NickName}");
-        nicknamePanel.SetActive(false);
+        PhotonNetwork.NickName = nickname;
+        GameInstance.Instance.nickname = PhotonNetwork.NickName;
+        Debug.Log($"Nickname : {PhotonNetwork.NickName}");
         
-        ConnectMasterServer();
+        if (false == PhotonNetwork.IsConnected)
+        {
+            ConnectMasterServer();
+        }
+        else
+        {
+            ChangeUIMode(EUIMode.Lobby);
+        }
     }
 
-    public void OnClickRoomConfirmButton()
+    public void OnClickRoomConfirmButton(string roomName, int gameType)
     {
-        if(null == roomNameInputField)
+        if (true == string.IsNullOrEmpty(roomName))
         {
-            Debug.Log("Error : OnClickRoomConfirmButton(), RoomNameInputField is null");
+            Debug.Log("Error : OnClickRoomConfirmButton(), RoomNameInputField is empty");
+            errorMessage.gameObject.SetActive(true);
+            errorMessage.SetErrorMessage("방 제목을 입력하세요");
             return;
         }
 
-        if (true == string.IsNullOrEmpty(roomNameInputField.text))
+        // TODO : PvP 구현 이후 삭제 예정
+        if(1 == gameType)
         {
-            // TODO : Error Message Panel 추가 예정
-            Debug.Log("Error : OnClickRoomConfirmButton(), RoomNameInputField is empty");
+            errorMessage.gameObject.SetActive(true);
+            errorMessage.SetErrorMessage("PvP는 개발 예정입니다");
             return;
         }
 
         if (PhotonNetwork.CountOfRooms >= MaxRoomCount)
         {
             Debug.Log("Error : OnClickRoomConfirmButton(), Room Full");
+            errorMessage.gameObject.SetActive(true);
+            errorMessage.SetErrorMessage("방을 더 만들 수 없습니다");
             return;
         }
 
-        string RoomName = roomNameInputField.text;
-        roomNameInputField.text = "";
-
         ExitGames.Client.Photon.Hashtable customProperties = new ExitGames.Client.Photon.Hashtable();
-        customProperties.Add("GameType", gameTypeDropdown.value);
+        customProperties.Add("GameType", gameType);
 
         PhotonNetwork.LocalPlayer.CustomProperties["ready"] = true;
-
-        PhotonNetwork.CreateRoom(RoomName, new RoomOptions { MaxPlayers = MaxPlayerCount, CustomRoomProperties = customProperties });
+        PhotonNetwork.CreateRoom(roomName, new RoomOptions { MaxPlayers = (byte)MaxPlayerCount, CustomRoomProperties = customProperties });
     }
 
     public void OnClickRoomCancleButton()
     {
-        roomNameInputField.text = "";
         ChangeUIMode(EUIMode.Lobby);
     }
 
@@ -321,12 +253,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         {
             case EUIMode.Lobby:
                 PhotonNetwork.Disconnect();
+                GameInstance.Instance.nickname = null;
                 SceneManager.LoadScene("GameStart");
                 break;
             
             case EUIMode.Room:
                 PhotonNetwork.LeaveRoom();
-                ChangeUIMode(EUIMode.Lobby);
                 break;
         }
     }
@@ -336,20 +268,42 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         ChangeUIMode(EUIMode.CreateRoom);
     }
 
+    public void OnClickNicknameButton()
+    {
+        ChangeUIMode(EUIMode.Nickname);
+    }
+
+    public void OnClickRoomButton(string roomName)
+    {
+        PhotonNetwork.JoinRoom(roomName);
+    }
+
     public void OnClickReadyStartButton()
     {
         // Start Button으로 동작
         if(true == PhotonNetwork.IsMasterClient)
         {
-            if(false == StartGame())
+            if(false == IsStartGame())
             {
                 Debug.Log("Log : 게임을 시작할 수 없습니다. 모든 플레이어가 준비된 상태여야 합니다.");
+                errorMessage.gameObject.SetActive(true);
+                errorMessage.SetErrorMessage("모든 플레이어가 준비된 상태가 아닙니다");
                 return;
             }
             else
             {
-                // TODO : Town Scene으로 이동
-                Debug.Log("Log : Start Game! ");
+                switch((int)PhotonNetwork.CurrentRoom.CustomProperties["GameType"])
+                {
+                    case 0:
+                        GameInstance.Instance.GameType = GameInstance.EGameType.PvE;
+                        break;
+                    case 1:
+                        GameInstance.Instance.GameType = GameInstance.EGameType.PvP;
+                        break;
+                }
+                
+                PhotonNetwork.CurrentRoom.IsOpen = false;
+                photonView.RPC("StartGame", RpcTarget.All);
             }
         }
 
@@ -360,59 +314,60 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         }
     }
 
+    public void OnClickErrorMessageConfirmButton()
+    {
+        errorMessage.gameObject.SetActive(false);
+    }
+
+    public void Lobby_Enter()
+    {
+        lobbyPanel.gameObject.SetActive(true);
+        background.SetPrevButtonVisible(true);
+    }
+
+    public void Lobby_Exit()
+    {
+        lobbyPanel.gameObject.SetActive(false);
+    }
+
+    public void Nickname_Enter()
+    {
+        nicknamePanel.gameObject.SetActive(true);
+        background.SetPrevButtonVisible(false);
+    }
+
+    public void Nickname_Exit()
+    {
+        nicknamePanel.gameObject.SetActive(false);
+        background.SetPrevButtonVisible(true);
+    }
+
+    public void CreateRoom_Enter()
+    {
+        createRoomPanel.gameObject.SetActive(true);
+        background.SetPrevButtonVisible(false);
+    }
+
+    public void CreateRoom_Exit()
+    {
+        createRoomPanel.gameObject.SetActive(false);
+        background.SetPrevButtonVisible(true);
+    }
+
+    public void Room_Enter()
+    {
+        roomPanel.gameObject.SetActive(true);
+    }
+
+    public void Room_Exit()
+    {
+        roomPanel.gameObject.SetActive(false);
+    }
+
     private void ChangeUIMode(EUIMode mode)
     {
-        switch(mode)
-        {
-            case EUIMode.Lobby:
-                {
-                    prevButton.gameObject.SetActive(true);
-                    prevButton.interactable = true;
-
-                    lobbyPanel.SetActive(true);
-                    nicknamePanel.SetActive(false);
-                    roomPanel.SetActive(false);
-                    createRoomPanel.SetActive(false);
-                }
-            break;
-            case EUIMode.Nickname:
-                {
-                    prevButton.gameObject.SetActive(false);
-                    lobbyPanel.SetActive(false);
-                    nicknamePanel.SetActive(true);
-                    roomPanel.SetActive(false);
-                    createRoomPanel.SetActive(false);
-                }
-                break;
-            case EUIMode.CreateRoom:
-                {
-                    prevButton.gameObject.SetActive(false);
-                    lobbyPanel.SetActive(false);
-                    nicknamePanel.SetActive(false);
-                    roomPanel.SetActive(false);
-                    createRoomPanel.SetActive(true);
-                }
-                break;
-            case EUIMode.Room:
-                {
-                    prevButton.gameObject.SetActive(true);
-                    lobbyPanel.SetActive(false);
-                    roomPanel.SetActive(true);
-                    createRoomPanel.SetActive(false);
-
-                    // 호스트인 경우 ReadyStartButton을 Start로
-                    if (true == PhotonNetwork.IsMasterClient)
-                    {
-                        readyStartButton.GetComponentInChildren<Text>().text = "START";
-                    }
-                    else
-                    {
-                        readyStartButton.GetComponentInChildren<Text>().text = "READY";
-                    }
-
-                }
-                break;
-        }
+        Debug.Log($"ChangeUIMode() called, current : {uiMode} next : {mode}");
+        fsm.Transition(mode);
         uiMode = mode;
     }
 
@@ -421,7 +376,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         // 설정한 정보로 마스터 서버 접속 시도
         PhotonNetwork.ConnectUsingSettings();
         
-        connectionInfoText.text = "connecting to master server";
+        background.SetConectionInfoText("connecting to master server");
     }
 
     private void JoinLobby()
@@ -431,47 +386,24 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         {
             if (true == PhotonNetwork.JoinLobby())
             {
-                connectionInfoText.text = "complete to join lobby";
+                background.SetConectionInfoText("complete to join lobby");
             }
         }
     }
 
     private void UpdateRoomPlayerList()
     {
-        int index = 0;
-        foreach (var player in PhotonNetwork.CurrentRoom.Players.Values)
-        {
-            Text playerName = playerButtonList[index].transform.Find("PlayerName").GetComponent<Text>();
-            Text readyState = playerButtonList[index].transform.Find("ReadyState").GetComponent<Text>();
-            
-            playerName.text = player.NickName;
-            object flag;
-
-            player.CustomProperties.TryGetValue("ready", out flag);
-            readyState.text = (bool)flag == true ? "ready" : "not\nready";
-
-            Debug.Log($"Player : {playerName.text}");
-
-            index++;
-        }
-
-        for(; index < MaxPlayerCount; index++)
-        {
-            Text playerName = playerButtonList[index].transform.Find("PlayerName").GetComponent<Text>();
-            Text readyState = playerButtonList[index].transform.Find("ReadyState").GetComponent<Text>();
-
-            playerName.text = "empty";
-            readyState.text = "not\nready";
-        }
+        List<Player> playerList = PhotonNetwork.CurrentRoom.Players.Values.ToList();
+        roomPanel.UpdatePlayerList(playerList);
     }
 
-    private bool StartGame()
+    private bool IsStartGame()
     {
         foreach(var player in PhotonNetwork.CurrentRoom.Players.Values)
         {
             if(true == player.IsMasterClient)
             {
-                //continue;
+                continue;
             }
 
             if(false == player.CustomProperties.ContainsKey("ready"))
@@ -499,14 +431,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         customProperties["ready"] = !(bool)flag;
         PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
 
-        if (true == (bool)flag)
-        {
-            prevButton.interactable = false;
-        }
-        else
-        {
-            prevButton.interactable = true;
-        }
+        background.SetPrevButtonInteractable(!(bool)flag);
     }
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
@@ -517,5 +442,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         {
             UpdateRoomPlayerList();
         }
+    }
+
+    [PunRPC]
+    public void StartGame()
+    {
+        Debug.Log("Start Game");
+        PhotonNetwork.LoadLevel("Town");
     }
 }

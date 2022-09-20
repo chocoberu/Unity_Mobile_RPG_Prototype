@@ -1,0 +1,113 @@
+using Photon.Pun;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GameManager : MonoBehaviourPunCallbacks
+{
+    private static GameManager instance;
+    public static GameManager Instance
+    {
+        get
+        {
+            return instance;
+        }
+    }
+
+    [SerializeField]
+    private GameMode gameMode;
+
+    // 간단한 Object pool
+    private Dictionary<string, Queue<GameObject>> objectPool = new Dictionary<string, Queue<GameObject>>();
+    private ObjectPool poolObject;
+
+    private void Awake()
+    {
+        if(null == instance)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+
+        poolObject = new ObjectPool();
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        switch(GameInstance.Instance.GameType)
+        {
+            case GameInstance.EGameType.Single:
+                {
+                    Debug.Log("SinglePlay GameMode");
+                    PhotonNetwork.OfflineMode = true;
+                }
+                break;
+
+            case GameInstance.EGameType.PvE:
+                {
+                    if(true == PhotonNetwork.IsMasterClient)
+                    {
+                        Debug.Log("PvE GameMode");
+                        GameObject gameModeObject = PhotonNetwork.InstantiateRoomObject("PvEGameMode", Vector3.zero, Quaternion.identity);
+                        gameMode = gameModeObject.GetComponent<GameMode>();
+                    }
+                }
+                break;
+            case GameInstance.EGameType.PvP:
+                {
+                    if (true == PhotonNetwork.IsMasterClient)
+                    {
+                        Debug.Log("PvP GameMode");
+                    }
+                }
+                break;
+        }
+    }
+
+    public bool AddObjectInPool(string name, int count)
+    {
+        return poolObject.AddObjects(name, count);
+    }
+
+    public GameObject PopObjectInPool(string name)
+    {
+        return poolObject.PopObject(name);
+    }
+
+    public void PushObjectInPool(GameObject gameObject)
+    {
+        if(false == poolObject.PushObject(gameObject))
+        {
+            Debug.Log($"{gameObject.name}이 Object pool 내부에 없음. Destroy() 처리");
+            Destroy(gameObject);
+        }
+    }
+
+    public void SetGameMode(GameMode newGameMode)
+    {
+        gameMode = newGameMode;
+    }
+
+    public void UpdatePlayerList()
+    {
+        if (null == gameMode)
+        {
+            return;
+        }
+        gameMode.UpdatePlayerList();
+    }
+
+    public void ExitGame()
+    {
+        PhotonNetwork.LeaveRoom();
+    }
+
+    public override void OnLeftRoom()
+    {
+        PhotonNetwork.LoadLevel("Lobby");
+    }
+}
