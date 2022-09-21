@@ -72,7 +72,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
 
         GameObject virtualPad = GameObject.Find("Virtual Pad");
         RightButtons rightButtons = Utils.FindChild<RightButtons>(virtualPad, null, true);
-        if(null != rightButtons)
+        if(null != rightButtons && true == photonView.IsMine)
         {
             OnUpdateAmmo += rightButtons.OnUpdateAttackCount;
         }

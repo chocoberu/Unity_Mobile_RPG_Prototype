@@ -32,6 +32,7 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
     protected float damage = 30.0f;
     protected float timeBetAttack = 5.0f;
     protected float attackRange = 2.0f;
+    protected float attackRadius = 1.0f;
     protected float detectRange = 20.0f;
     protected ParticleSystem hitEffect;
 
@@ -162,14 +163,16 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
 
     protected void NormalAttackHitCheck()
     {
-        hitEffect?.Play();
+        hitEffect?.Play();       
+        Debug.DrawLine(transform.position, transform.position + transform.forward * attackRange, Color.red, 2.0f);
+
         if (false == PhotonNetwork.IsMasterClient || true == zombieHealth.Dead)
         {
             return;
         }
 
         // Overlap을 통해 충돌 검사
-        Collider[] colliders = Physics.OverlapCapsule(transform.position, transform.position + transform.forward * attackRange, 1.0f, targetLayer);
+        Collider[] colliders = Physics.OverlapCapsule(transform.position, transform.position + transform.forward * (attackRange - attackRadius), attackRadius, targetLayer);
         Debug.DrawLine(transform.position, transform.position + transform.forward * attackRange, Color.red, 2.0f);
 
         for (int i = 0; i < colliders.Length; i++)
@@ -177,6 +180,7 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
             HealthComponent entity = colliders[i].GetComponent<HealthComponent>();
             if (null != entity && false == entity.Dead && this != entity && false == zombieHealth.Dead)
             {
+                Debug.Log($"Length : {Vector3.Distance(entity.transform.position, transform.position)}");
                 entity.OnDamage(damage, colliders[i].transform.position, colliders[i].transform.up, zombieHealth.GetTeamNumber());
                 break;
             }

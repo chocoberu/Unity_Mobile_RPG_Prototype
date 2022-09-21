@@ -56,6 +56,50 @@ public class ObjectPool
         return true;
     }
 
+    public bool AddObjects(GameObject original, int count)
+    {
+        bool exist = false;
+        foreach(var prefab in originals.Values)
+        {
+            if(prefab == original)
+            {
+                exist = true;
+                break;
+            }
+        }
+
+        GameObject root = poolObject.transform.Find(original.name)?.gameObject;
+        Queue<GameObject> queue = null;
+
+        if (false == exist)
+        {
+            originals.Add(original.name, original);
+
+            root = new GameObject(original.name);
+            root.transform.SetParent(poolObject.transform);
+            queue = new Queue<GameObject>();
+        }
+        else
+        {
+            pool.TryGetValue(original.name, out queue);
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            GameObject gameObject = Object.Instantiate(original, root.transform);
+            if (null == gameObject)
+            {
+                return false;
+            }
+            gameObject.name = original.name;
+            queue.Enqueue(gameObject);
+            gameObject.SetActive(false);
+        }
+        pool.Add(original.name, queue);
+
+        return true;
+    }
+
     public GameObject PopObject(string name)
     {
         GameObject ret = null;
