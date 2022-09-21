@@ -15,7 +15,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     private enum EUIMode
     {
-        Lobby = 0,
+        Background = 0,
+        Lobby,
         Nickname,
         CreateRoom,
         Room
@@ -240,6 +241,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         PhotonNetwork.LocalPlayer.CustomProperties["ready"] = true;
         PhotonNetwork.CreateRoom(roomName, new RoomOptions { MaxPlayers = (byte)MaxPlayerCount, CustomRoomProperties = customProperties });
+
+        ChangeUIMode(EUIMode.Background);
+        background.SetConectionInfoText("create room");
     }
 
     public void OnClickRoomCancleButton()
@@ -319,6 +323,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         errorMessage.gameObject.SetActive(false);
     }
 
+    public void Background_Enter()
+    {
+        background.SetPrevButtonVisible(true);
+    }
+
     public void Lobby_Enter()
     {
         lobbyPanel.gameObject.SetActive(true);
@@ -375,7 +384,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         // 설정한 정보로 마스터 서버 접속 시도
         PhotonNetwork.ConnectUsingSettings();
-        
+
+        ChangeUIMode(EUIMode.Background);
         background.SetConectionInfoText("connecting to master server");
     }
 
