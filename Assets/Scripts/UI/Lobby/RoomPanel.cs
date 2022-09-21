@@ -53,26 +53,20 @@ public class RoomPanel : UIBase
             readyState.text = "not\nready";
         }
 
+        playerList.Sort((lhs, rhs) => lhs.ActorNumber < rhs.ActorNumber ? -1 : 1);
+
         for(int i = 0; i < playerList.Count; i++)
         {
             Player player = playerList[i];
-            int index = player.ActorNumber - 1;
             
-            if (index < 0 || index >= MaxPlayerCount)
-            {
-                continue;
-            }
-
-            Text playerName = playerButtonList[index].transform.Find("PlayerName").GetComponent<Text>();
-            Text readyState = playerButtonList[index].transform.Find("ReadyState").GetComponent<Text>();
+            Text playerName = playerButtonList[i].transform.Find("PlayerName").GetComponent<Text>();
+            Text readyState = playerButtonList[i].transform.Find("ReadyState").GetComponent<Text>();
 
             playerName.text = player.NickName;
             
             object flag;
             player.CustomProperties.TryGetValue("ready", out flag);
             readyState.text = (bool)flag == true ? "ready" : "not\nready";
-
-            //Debug.Log($"player {player.NickName}, ActorNumber : {player.ActorNumber}");
         }
     }
     
