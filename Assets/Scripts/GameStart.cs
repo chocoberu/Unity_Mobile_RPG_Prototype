@@ -32,12 +32,14 @@ public class GameStart : MonoBehaviour
     {
         // TODO : 캐릭터 선택 or 무기 선택 UI 이후에 진입하도록 수정
         GameInstance.Instance.GameType = GameInstance.EGameType.Single;
+        GameInstance.Instance.nickname = "Player";
         SceneManager.LoadScene("Town");
     }
 
     public void OnClickMultiPlayButton()
     {
         // Lobby Scene으로 이동
+        GameInstance.Instance.nickname = null;
         SceneManager.LoadScene("Lobby");
     }
 

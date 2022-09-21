@@ -53,8 +53,8 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
     {
         GameManager.Instance.UpdatePlayerList();
     }
-
-    private void OnDisable()
+    
+    private void OnDestroy()
     {
         GameManager.Instance.UpdatePlayerList();
     }
