@@ -145,7 +145,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
             return;
         }
 
-        if (movement.sqrMagnitude > 0.0f)
+        if (InputActionPhase.Canceled != context.phase)
         {
             MoveState = PlayerMoveState.Moving;
         }

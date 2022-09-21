@@ -39,6 +39,7 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
     // 이동 관련
     protected float moveSpeed = 3.5f;
     protected float rotationSpeed = 30.0f;
+    protected bool isTeleport = true;
 
     // 동기화 관련
     protected Vector3 serializedPosition;
@@ -125,6 +126,13 @@ public class ZombieBase : MonoBehaviourPun, IPunObservable
     {
         if (false == PhotonNetwork.IsMasterClient)
         {
+            if(true == isTeleport && Vector3.Distance(transform.position, serializedPosition) >= 2.0f)
+            {
+                transform.position = serializedPosition;
+                transform.rotation = serializedRotation;
+                return;
+            }
+
             transform.position = Vector3.Lerp(transform.position, serializedPosition, Time.deltaTime * pathFinder.speed);
             transform.rotation = Quaternion.Slerp(transform.rotation, serializedRotation, Time.deltaTime * rotationSpeed);
         }
