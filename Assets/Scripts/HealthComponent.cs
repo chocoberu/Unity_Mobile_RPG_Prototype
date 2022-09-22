@@ -17,6 +17,9 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     public event Action OnDeath;
     public event Action<float> OnHPChanged;
 
+    protected bool invincible = false;
+    protected float invincibleTime = 2.0f;
+
     // UI
     public GameObject damageWidgetObject;
 
@@ -139,5 +142,12 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
         {
             hpBarWidget.gameObject.SetActive(false);
         }
+    }
+
+    protected IEnumerator CoActiveInvincible()
+    {
+        invincible = true;
+        yield return new WaitForSeconds(invincibleTime);
+        invincible = false;
     }
 }
