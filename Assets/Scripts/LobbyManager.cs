@@ -66,7 +66,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         // 게임 버전 설정
         PhotonNetwork.GameVersion = gameVersion;
 
-        if(null == GameInstance.Instance.nickname || false == PhotonNetwork.IsConnected)
+        if(null == GameInstance.Instance.Nickname || false == PhotonNetwork.IsConnected)
         {
             fsm.StartFSM(EUIMode.Nickname);
         }
@@ -169,7 +169,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         }
         newPlayer.SetCustomProperties(customProperties);
 
-        Debug.Log($"Player {newPlayer.NickName} enter");
+        Debug.Log($"Player {newPlayer.NickName}, actorNumber : {newPlayer.ActorNumber} enter");
         
         // UpdatePlayerList
         UpdateRoomPlayerList();
@@ -184,6 +184,17 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         
         // UpdatePlayerList
         UpdateRoomPlayerList();
+
+        // 방장이 된 경우 관련된 부분 처리
+        if(true == PhotonNetwork.IsMasterClient)
+        {
+            roomPanel.SetReadyStartButton(true);
+            background.SetPrevButtonInteractable(true);
+            ExitGames.Client.Photon.Hashtable customProperties = PhotonNetwork.LocalPlayer.CustomProperties;
+            customProperties["ready"] = true;
+            PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
+        }
+        
     }
 
     public void OnClickNicknameConfirmButton(string nickname)
@@ -197,7 +208,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         }
 
         PhotonNetwork.NickName = nickname;
-        GameInstance.Instance.nickname = PhotonNetwork.NickName;
+        GameInstance.Instance.Nickname = PhotonNetwork.NickName;
         Debug.Log($"Nickname : {PhotonNetwork.NickName}");
         
         if (false == PhotonNetwork.IsConnected)
@@ -257,7 +268,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         {
             case EUIMode.Lobby:
                 PhotonNetwork.Disconnect();
-                GameInstance.Instance.nickname = null;
+                GameInstance.Instance.Nickname = null;
                 SceneManager.LoadScene("GameStart");
                 break;
             
@@ -371,6 +382,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public void Room_Exit()
     {
         roomPanel.gameObject.SetActive(false);
+        background.SetPrevButtonInteractable(true);
     }
 
     private void ChangeUIMode(EUIMode mode)
@@ -404,6 +416,18 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     private void UpdateRoomPlayerList()
     {
         List<Player> playerList = PhotonNetwork.CurrentRoom.Players.Values.ToList();
+        playerList.Sort((lhs, rhs) => lhs.ActorNumber < rhs.ActorNumber ? -1 : 1);
+
+        // PlayerIndex를 설정, 플레이어 시작 위치를 지정할 때 사용
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            if(true == playerList[i].IsLocal)
+            {
+                GameInstance.Instance.PlayerIndex = i + 1;
+                break;
+            }
+        }
+
         roomPanel.UpdatePlayerList(playerList);
     }
 
@@ -431,17 +455,17 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     private void SetReadyState()
     {
         object flag;
-        if(false == PhotonNetwork.LocalPlayer.CustomProperties.TryGetValue("ready", out flag))
+        if (false == PhotonNetwork.LocalPlayer.CustomProperties.TryGetValue("ready", out flag))
         {
             Debug.Log($"Error : Player CustomProperties not exist ready");
             return;
         }
+
         ExitGames.Client.Photon.Hashtable customProperties = PhotonNetwork.LocalPlayer.CustomProperties;
 
         customProperties["ready"] = !(bool)flag;
         PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
-
-        background.SetPrevButtonInteractable(!(bool)flag);
+        background.SetPrevButtonInteractable((bool)flag);
     }
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)

@@ -53,7 +53,7 @@ public class RoomPanel : UIBase
             readyState.text = "not\nready";
         }
 
-        playerList.Sort((lhs, rhs) => lhs.ActorNumber < rhs.ActorNumber ? -1 : 1);
+        //playerList.Sort((lhs, rhs) => lhs.ActorNumber < rhs.ActorNumber ? -1 : 1);
 
         for(int i = 0; i < playerList.Count; i++)
         {

@@ -106,9 +106,9 @@ public class PvEGameMode : GameMode
 
         // 알맞는 PlayerStart를 찾아서 Player Spawn
         GameObject[] playerStartList = GameObject.FindGameObjectsWithTag("BluePlayerStart");
-        string playerStartName = $"BluePlayer{PhotonNetwork.LocalPlayer.ActorNumber}";
+        string playerStartName = $"BluePlayer{GameInstance.Instance.PlayerIndex}";
 
-        Vector3 playerStartPosition = Vector3.up;
+        Vector3 playerStartPosition = playerStartList[0].transform.position;
         foreach(var playerStart in playerStartList)
         {
             if(true == playerStartName.Equals(playerStart.name))

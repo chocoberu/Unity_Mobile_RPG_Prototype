@@ -164,7 +164,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         // Reload, Roll, 연사 서버 검증
         if(true == isReloading || PlayerMoveState.Roll == playerMovement.MoveState || (float)Time.time < lastFireTime + timeBetFire - lag)
         {
-            Debug.Log($"PhotonNetwork.time : {PhotonNetwork.Time}, lastFireTime : {(double)lastFireTime}, timeBetFire : {(double)timeBetFire} lag : {(double)lag}");
+            Debug.Log($"Time.time : {Time.time}, lastFireTime : {(double)lastFireTime}, timeBetFire : {(double)timeBetFire} lag : {(double)lag}");
             StopAttack();
             return;
         }

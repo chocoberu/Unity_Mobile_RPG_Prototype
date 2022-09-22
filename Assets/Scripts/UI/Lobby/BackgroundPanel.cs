@@ -38,6 +38,7 @@ public class BackgroundPanel : UIBase
 
     public void SetPrevButtonInteractable(bool value)
     {
+        Debug.Log($"SetPrevButtonInteractable() called, value : {value}");
         Get<Button>((int)Buttons.PrevButton).interactable = value;
     }
 

@@ -34,7 +34,10 @@ public class GameInstance : MonoBehaviour
         }
     }
 
-    public string nickname;
+    public string Nickname { get; set; }
+
+    private int playerIndex = 1;
+    public int PlayerIndex { get { return playerIndex; } set { playerIndex = value; } }
     
     private void Awake()
     {
@@ -59,7 +62,7 @@ public class GameInstance : MonoBehaviour
 #endif
 
         // TODO : ∞‘¿” Static Info Load
-        nickname = null;
+        Nickname = null;
     }
 
     // Start is called before the first frame update
@@ -68,11 +71,4 @@ public class GameInstance : MonoBehaviour
         GameType = EGameType.Single;
         DontDestroyOnLoad(gameObject);
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
 }
