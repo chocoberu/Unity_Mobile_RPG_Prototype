@@ -18,6 +18,7 @@ public class FSM<T> where T : System.Enum
     private Dictionary<T, Action> updateDelegates = new Dictionary<T, Action>();
 
     private bool isRunning = false;
+    public bool Running { get { return isRunning; } }
 
     public FSM(MonoBehaviour component)
     {

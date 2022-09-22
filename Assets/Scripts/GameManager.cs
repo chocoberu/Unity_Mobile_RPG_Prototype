@@ -1,4 +1,5 @@
 using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -108,6 +109,33 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public override void OnLeftRoom()
     {
-        PhotonNetwork.LoadLevel("Lobby");
+        switch(GameInstance.Instance.GameType)
+        {
+            case GameInstance.EGameType.Single:
+                PhotonNetwork.LoadLevel("GameStart");
+                break;
+            case GameInstance.EGameType.PvE:
+            case GameInstance.EGameType.PvP:
+                PhotonNetwork.LoadLevel("Lobby");
+                break;
+        }
+        
+    }
+
+    public override void OnConnectedToMaster()
+    {
+        // SinglePlay에서 게임을 시작할 때만 Room 생성
+        if (GameInstance.EGameType.Single == GameInstance.Instance.GameType && null == gameMode)
+        {
+            PhotonNetwork.CreateRoom("SinglePlay");
+        }
+    }
+
+    public override void OnJoinedRoom()
+    {
+        base.OnJoinedRoom();
+
+        GameObject gameModeObject = PhotonNetwork.InstantiateRoomObject("SinglePlayGameMode", Vector3.zero, Quaternion.identity);
+        gameMode = gameModeObject.GetComponent<GameMode>();
     }
 }

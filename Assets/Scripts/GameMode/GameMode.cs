@@ -1,4 +1,5 @@
 using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -62,7 +63,7 @@ public class GameMode : MonoBehaviourPunCallbacks
         foreach (var player in players)
         {
             PlayerState playerState = player.GetComponent<PlayerState>();
-            if(null == playerState)
+            if(null == playerState || false == playerState.enabled)
             {
                 continue;
             }
@@ -76,6 +77,14 @@ public class GameMode : MonoBehaviourPunCallbacks
         if(false == playerList.Contains(playerState))
         {
             playerList.Add(playerState);
+        }
+    }
+
+    public void RemovePlayerState(PlayerState playerState)
+    {
+        if(true == playerList.Contains(playerState))
+        {
+            playerList.Remove(playerState);
         }
     }
 
@@ -94,4 +103,11 @@ public class GameMode : MonoBehaviourPunCallbacks
 
     }
 
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        base.OnPlayerLeftRoom(otherPlayer);
+
+        UpdatePlayerList();
+        
+    }
 }

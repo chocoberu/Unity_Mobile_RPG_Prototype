@@ -145,7 +145,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
             return;
         }
 
-        if (movement.sqrMagnitude > 0.0f)
+        if (InputActionPhase.Canceled != context.phase)
         {
             MoveState = PlayerMoveState.Moving;
         }
@@ -158,7 +158,7 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     public void OnRoll(InputAction.CallbackContext context)
     {
         // 로컬에서만 입력 처리
-        if(false == photonView.IsMine)
+        if(false == photonView.IsMine || context.phase != InputActionPhase.Started)
         {
             return;
         }

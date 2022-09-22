@@ -13,6 +13,7 @@ public class ZombieMinion : ZombieBase
 
         damage = 15.0f;
         attackRange = 2.5f;
+        attackRadius = 0.5f;
         detectRange = 50.0f;
 
         moveSpeed = 5.0f;

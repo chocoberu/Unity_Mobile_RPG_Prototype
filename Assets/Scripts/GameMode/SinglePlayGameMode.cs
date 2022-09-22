@@ -1,12 +1,11 @@
 using Photon.Pun;
-using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PvEGameMode : GameMode
+public class SinglePlayGameMode : GameMode
 {
     [SerializeField]
     private float respawnTime = 3.0f;
@@ -31,7 +30,7 @@ public class PvEGameMode : GameMode
     {
         gameClearTitle = gameClearUI.transform.Find("GameClearTitle").GetComponent<Text>();
         detail = gameClearUI.transform.Find("Detail").GetComponent<Text>();
-        
+
         gameClearUI.SetActive(false);
         MatchState = EMatchState.PreMatch;
     }
@@ -45,8 +44,8 @@ public class PvEGameMode : GameMode
     public override void UpdatePlayerList()
     {
         base.UpdatePlayerList();
-        
-        for(int i = 0; i < playerList.Count; i++)
+
+        for (int i = 0; i < playerList.Count; i++)
         {
             playerList[i].OnDeath -= RestartPlayer;
             playerList[i].OnDeath += RestartPlayer;
@@ -96,7 +95,7 @@ public class PvEGameMode : GameMode
 
     public override void InitializeMatch()
     {
-        if(false == PhotonNetwork.IsMasterClient)
+        if (false == PhotonNetwork.IsMasterClient)
         {
             GameManager.Instance.SetGameMode(this);
         }
@@ -106,12 +105,12 @@ public class PvEGameMode : GameMode
 
         // 알맞는 PlayerStart를 찾아서 Player Spawn
         GameObject[] playerStartList = GameObject.FindGameObjectsWithTag("BluePlayerStart");
-        string playerStartName = $"BluePlayer{GameInstance.Instance.PlayerIndex}";
+        string playerStartName = $"BluePlayer{PhotonNetwork.LocalPlayer.ActorNumber}";
 
-        Vector3 playerStartPosition = playerStartList[0].transform.position;
-        foreach(var playerStart in playerStartList)
+        Vector3 playerStartPosition = Vector3.up;
+        foreach (var playerStart in playerStartList)
         {
-            if(true == playerStartName.Equals(playerStart.name))
+            if (true == playerStartName.Equals(playerStart.name))
             {
                 playerStartPosition = playerStart.transform.position;
                 break;
@@ -125,7 +124,7 @@ public class PvEGameMode : GameMode
     public override void StartMatch()
     {
         Debug.Log("Start Match");
-        
+
         // Boss Spawn
         if (true == PhotonNetwork.IsMasterClient)
         {
@@ -139,7 +138,7 @@ public class PvEGameMode : GameMode
         else
         {
             zombieBoss = GameObject.FindGameObjectWithTag("Enemy").GetComponent<ZombieBoss>();
-            if(null == zombieBoss)
+            if (null == zombieBoss)
             {
                 Debug.Log("zombie boss is null");
                 return;
@@ -170,7 +169,7 @@ public class PvEGameMode : GameMode
     {
         yield return new WaitForSeconds(respawnTime);
 
-        if(null != player)
+        if (null != player)
         {
             Debug.Log("Restart Player");
             player.transform.position = player.GetComponent<PlayerState>().StartPosition;
@@ -197,8 +196,7 @@ public class PvEGameMode : GameMode
     public void ExitRoom()
     {
         Debug.Log("Exit Room");
-        
+
         GameManager.Instance.ExitGame();
     }
-
 }
