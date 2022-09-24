@@ -41,11 +41,16 @@ public class PlayerHealth : HealthComponent
 
         hpBarWidget.SetupNickname(photonView.Controller.NickName);
 
-        // 1초 동안 무적 상태
-        if(true == PhotonNetwork.IsMasterClient)
+        // invincibleTime초 동안 무적 상태
+        if (true == PhotonNetwork.IsMasterClient)
         {
             StartCoroutine(CoActiveInvincible());
         }
+    }
+
+    protected void OnDisable()
+    {
+        StopAllCoroutines();
     }
 
     [PunRPC]

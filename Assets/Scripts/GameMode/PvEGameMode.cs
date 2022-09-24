@@ -109,16 +109,18 @@ public class PvEGameMode : GameMode
         string playerStartName = $"BluePlayer{GameInstance.Instance.PlayerIndex}";
 
         Vector3 playerStartPosition = playerStartList[0].transform.position;
+        Quaternion playerStartRotation = playerStartList[0].transform.rotation;
         foreach(var playerStart in playerStartList)
         {
             if(true == playerStartName.Equals(playerStart.name))
             {
                 playerStartPosition = playerStart.transform.position;
+                playerStartRotation = playerStart.transform.rotation;
                 break;
             }
         }
 
-        playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, Quaternion.identity);
+        playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, playerStartRotation);
         playerObject.GetComponent<PlayerState>().StartPosition = playerStartPosition;
     }
 

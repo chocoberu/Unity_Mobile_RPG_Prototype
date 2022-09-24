@@ -63,6 +63,8 @@ public class GameManager : MonoBehaviourPunCallbacks
                     if (true == PhotonNetwork.IsMasterClient)
                     {
                         Debug.Log("PvP GameMode");
+                        GameObject gameModeObject = PhotonNetwork.InstantiateRoomObject("PvPGameMode", Vector3.zero, Quaternion.identity);
+                        gameMode = gameModeObject.GetComponent<GameMode>();
                     }
                 }
                 break;

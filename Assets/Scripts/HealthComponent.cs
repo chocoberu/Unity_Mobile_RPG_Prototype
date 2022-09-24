@@ -58,6 +58,7 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     [PunRPC]
     public virtual void OnDamage(float damage, Vector3 hitPosition, Vector3 hitNormal, int AttackerTeamNumber)
     {
+        // TODO : 공격 타입, 공격자 추가 필요
         if(true == PhotonNetwork.IsMasterClient)
         {
             Debug.Log($"OnDamage, Damage : {damage}");
@@ -146,6 +147,7 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
 
     protected IEnumerator CoActiveInvincible()
     {
+        // TODO : Particle 추가
         invincible = true;
         yield return new WaitForSeconds(invincibleTime);
         invincible = false;

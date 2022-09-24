@@ -211,7 +211,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         GameInstance.Instance.Nickname = PhotonNetwork.NickName;
         Debug.Log($"Nickname : {PhotonNetwork.NickName}");
         
-        if (false == PhotonNetwork.IsConnected)
+        if (false == PhotonNetwork.IsConnected || true == PhotonNetwork.OfflineMode)
         {
             ConnectMasterServer();
         }
@@ -232,12 +232,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         }
 
         // TODO : PvP 구현 이후 삭제 예정
-        if(1 == gameType)
-        {
-            errorMessage.gameObject.SetActive(true);
-            errorMessage.SetErrorMessage("PvP는 개발 예정입니다");
-            return;
-        }
+        //if(1 == gameType)
+        //{
+        //    errorMessage.gameObject.SetActive(true);
+        //    errorMessage.SetErrorMessage("PvP는 개발 예정입니다");
+        //    return;
+        //}
 
         if (PhotonNetwork.CountOfRooms >= MaxRoomCount)
         {
