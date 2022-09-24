@@ -12,9 +12,13 @@ public class PvPGameMode : GameMode
 
     private float startTime;
 
+    // UI
+    private StartCountDown startCountDown;
+
     private void Awake()
     {
-        
+        startCountDown = Utils.FindChild<StartCountDown>(gameObject, null, true);
+        startCountDown.gameObject.SetActive(false);
     }
 
     // Start is called before the first frame update
@@ -27,7 +31,10 @@ public class PvPGameMode : GameMode
     // Update is called once per frame
     private void Update()
     {
-
+        if(EMatchState.InProgress == MatchState)
+        {
+            Debug.Log($"current Time : {(float)PhotonNetwork.Time - startTime}");
+        }
     }
 
     public override void UpdatePlayerList()
@@ -131,6 +138,8 @@ public class PvPGameMode : GameMode
         playerObject.GetComponent<PlayerMovement>().enabled = true;
         playerObject.GetComponent<PlayerHealth>().enabled = false;
         playerObject.GetComponent<PlayerHealth>().enabled = true;
+
+        startTime = (float)PhotonNetwork.Time;
     }
 
     public override void EndMatch()
@@ -156,6 +165,12 @@ public class PvPGameMode : GameMode
     public void UpdateStartCountDown(int countdown)
     {
         Debug.Log($"count down : {countdown}");
+        if (false == startCountDown.gameObject.activeInHierarchy)
+        {
+            startCountDown.gameObject.SetActive(true);
+        }
+
+        startCountDown.SetCountDown(countdown);
     }
 
     public void ExitRoom()

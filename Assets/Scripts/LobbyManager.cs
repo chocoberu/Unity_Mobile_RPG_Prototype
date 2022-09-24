@@ -249,10 +249,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         ExitGames.Client.Photon.Hashtable customProperties = new ExitGames.Client.Photon.Hashtable();
         customProperties.Add("GameType", gameType);
+        var roomPropertiesLobby = new string[1];
+        roomPropertiesLobby[0] = "GameType";
 
         PhotonNetwork.LocalPlayer.CustomProperties["ready"] = true;
-        PhotonNetwork.CreateRoom(roomName, new RoomOptions { MaxPlayers = (byte)MaxPlayerCount, CustomRoomProperties = customProperties });
-
+        PhotonNetwork.CreateRoom(roomName, new RoomOptions { MaxPlayers = (byte)MaxPlayerCount, CustomRoomProperties = customProperties, CustomRoomPropertiesForLobby = roomPropertiesLobby });
+        
         ChangeUIMode(EUIMode.Background);
         background.SetConectionInfoText("create room");
     }
