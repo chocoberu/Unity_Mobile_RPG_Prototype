@@ -1,3 +1,4 @@
+using Cinemachine;
 using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,6 +8,9 @@ using UnityEngine.UI;
 
 public class SinglePlayGameMode : GameMode
 {
+    // Player
+    private CinemachineVirtualCamera blueFollowCamera;
+
     [SerializeField]
     private float respawnTime = 3.0f;
 
@@ -23,6 +27,10 @@ public class SinglePlayGameMode : GameMode
     private void Awake()
     {
         teamHPWidgetList = transform.GetComponentsInChildren<TeamHPWidget>().ToList();
+
+        CinemachineVirtualCamera redFollowCamera = GameObject.Find("RedFollowCamera").GetComponent<CinemachineVirtualCamera>();
+        blueFollowCamera = GameObject.Find("BlueFollowCamera").GetComponent<CinemachineVirtualCamera>();
+        redFollowCamera.enabled = false;
     }
 
     // Start is called before the first frame update
@@ -108,17 +116,25 @@ public class SinglePlayGameMode : GameMode
         string playerStartName = $"BluePlayer{PhotonNetwork.LocalPlayer.ActorNumber}";
 
         Vector3 playerStartPosition = Vector3.up;
+        Quaternion playerStartRotation = Quaternion.identity;
         foreach (var playerStart in playerStartList)
         {
             if (true == playerStartName.Equals(playerStart.name))
             {
                 playerStartPosition = playerStart.transform.position;
+                playerStartRotation = playerStart.transform.rotation;
                 break;
             }
         }
 
-        playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, Quaternion.identity);
+        playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, playerStartRotation);
+        
+        // Follow Camera ¼³Á¤
+        blueFollowCamera.Follow = playerObject.transform;
+        blueFollowCamera.LookAt = playerObject.transform;
+
         playerObject.GetComponent<PlayerState>().StartPosition = playerStartPosition;
+        playerObject.GetComponent<PlayerState>().StartRotation = playerStartRotation;
     }
 
     public override void StartMatch()
@@ -172,7 +188,10 @@ public class SinglePlayGameMode : GameMode
         if (null != player)
         {
             Debug.Log("Restart Player");
-            player.transform.position = player.GetComponent<PlayerState>().StartPosition;
+            PlayerState playerState = player.GetComponent<PlayerState>();
+
+            player.transform.position = playerState.StartPosition;
+            player.transform.rotation = playerState.StartRotation;
             player.SetActive(false);
             player.SetActive(true);
         }

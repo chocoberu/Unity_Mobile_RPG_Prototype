@@ -23,6 +23,9 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     // UI
     public GameObject damageWidgetObject;
 
+    // Particle
+    protected ParticleSystem invincibleParticle;
+
     protected virtual void OnEnable()
     {
         Dead = false;
@@ -152,9 +155,10 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
 
     protected IEnumerator CoActiveInvincible()
     {
-        // TODO : Particle Ãß°¡
         invincible = true;
+        invincibleParticle?.Play();
         yield return new WaitForSeconds(invincibleTime);
         invincible = false;
+        invincibleParticle?.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 }

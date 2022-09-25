@@ -119,7 +119,6 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
 
     private void Roll()
     {
-        //transform.position += transform.forward * rollSpeed * Time.deltaTime;
         transform.position += rollDirection.normalized* rollSpeed * Time.deltaTime;
     }
 
@@ -133,6 +132,12 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         }
 
         Vector2 movement = context.ReadValue<Vector2>();
+
+        // Red Team인 경우 처리
+        if(1 == playerState.TeamNumber)
+        {
+            movement *= -1.0f;
+        }
 #if UNITY_ANDROID || UNITY_IOS
         Vector2 direction = GetInputMovement(movement);
         movement = Vector2.Dot(movement, direction) * direction;

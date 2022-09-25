@@ -1,3 +1,4 @@
+using Cinemachine;
 using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,14 +11,18 @@ public class PvPGameMode : GameMode
     // Player
     private GameObject playerObject;
     private int TeamNumber;
+    private CinemachineVirtualCamera blueFollowCamera;
+    private CinemachineVirtualCamera redFollowCamera;
 
     // Game Time
     [SerializeField]
     private float respawnTime = 3.0f;
-    private float MaxTime = 60.0f;
+    private float MaxTime = 180.0f;
     private float startTime;
 
     // GameState
+    private int bluePlayers;
+    private int redPlayers;
     private int blueScore;
     private int redScore;
 
@@ -38,8 +43,12 @@ public class PvPGameMode : GameMode
         startCountDown = Utils.FindChild<StartCountDown>(gameObject, null, true);
         startCountDown.gameObject.SetActive(false);
         pvpHud = Utils.FindChild<PvPHUD>(gameObject, null, true);
-        
+
+        blueFollowCamera = GameObject.Find("BlueFollowCamera").GetComponent<CinemachineVirtualCamera>();
+        redFollowCamera = GameObject.Find("RedFollowCamera").GetComponent<CinemachineVirtualCamera>();
+
         blueScore = redScore = 0;
+        bluePlayers = redPlayers = 0;
     }
 
     // Start is called before the first frame update
@@ -108,7 +117,8 @@ public class PvPGameMode : GameMode
             }
 
             PlayerHealth player = playerList[i].GetComponent<PlayerHealth>();
-            if(player.GetTeamNumber() != TeamNumber)
+
+            if (player.GetTeamNumber() != TeamNumber)
             {
                 continue;
             }
@@ -126,6 +136,7 @@ public class PvPGameMode : GameMode
 
     private void RestartPlayer(GameObject player)
     {
+        // TODO : 서버에서 처리 후 결과를 전파하는 방식으로 변경 필요?
         StartCoroutine(CoRestartPlayer(player));
     }
 
@@ -136,7 +147,10 @@ public class PvPGameMode : GameMode
         if (null != player)
         {
             Debug.Log("Restart Player");
-            player.transform.position = player.GetComponent<PlayerState>().StartPosition;
+            PlayerState playerState = player.GetComponent<PlayerState>();
+
+            player.transform.position = playerState.StartPosition;
+            player.transform.rotation = playerState.StartRotation;
             player.SetActive(false);
             player.SetActive(true);
         }
@@ -157,19 +171,22 @@ public class PvPGameMode : GameMode
         int playerIndex = GameInstance.Instance.PlayerIndex - 1;
         TeamNumber = playerIndex % 2;
 
-        GameObject[] playerStartList;
-        string playerStartName;
-        if (TeamNumber == 0)
+        GameObject[] playerStartList = null;
+        string playerStartName = "";
+        switch(TeamNumber)
         {
-            playerStartList = GameObject.FindGameObjectsWithTag("BluePlayerStart");
-            playerStartName = $"BluePlayer{GameInstance.Instance.PlayerIndex / 2 + 1}";
+            case 0:
+                playerStartList = GameObject.FindGameObjectsWithTag("BluePlayerStart");
+                playerStartName = $"BluePlayer{GameInstance.Instance.PlayerIndex / 2 + 1}";
+                redFollowCamera.enabled = false;
+                break;
+            case 1:
+                playerStartList = GameObject.FindGameObjectsWithTag("RedPlayerStart");
+                playerStartName = $"RedPlayer{GameInstance.Instance.PlayerIndex / 2 + 1}";
+                blueFollowCamera.enabled = false;
+                break;
         }
-        else
-        {
-            playerStartList = GameObject.FindGameObjectsWithTag("RedPlayerStart");
-            playerStartName = $"RedPlayer{GameInstance.Instance.PlayerIndex / 2 + 1}";
-        }
-
+        
         Debug.Log($"PlayerStart : {playerStartName}");
 
         Vector3 playerStartPosition = playerStartList[0].transform.position;
@@ -184,11 +201,16 @@ public class PvPGameMode : GameMode
             }
         }
 
+        // 플레이어 스폰 및 팀 설정
         playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, playerStartRotation);
         PlayerState playerState = playerObject.GetComponent<PlayerState>();
         playerState.StartPosition = playerStartPosition;
+        playerState.StartRotation = playerStartRotation;
         playerState.photonView.RPC("SetTeamNumber", RpcTarget.AllViaServer, TeamNumber);
-        playerObject.GetComponent<PlayerHealth>().SetHPBarColor(TeamNumber);
+
+        // Follow Camera 설정
+        SetFollowCamera();
+
         playerObject.GetComponent<PlayerMovement>().enabled = false;
     }
 
@@ -236,7 +258,22 @@ public class PvPGameMode : GameMode
         MatchState = EMatchState.InProgress;
         photonView.RPC("ChangeMatchState", RpcTarget.Others, (int)MatchState);
     }
-    
+
+    private void SetFollowCamera()
+    {
+        switch (TeamNumber)
+        {
+            case 0:
+                blueFollowCamera.Follow = playerObject.transform;
+                blueFollowCamera.LookAt = playerObject.transform;
+                break;
+            case 1:
+                redFollowCamera.Follow = playerObject.transform;
+                redFollowCamera.LookAt = playerObject.transform;
+                break;
+        }
+    }
+
     [PunRPC]
     public void UpdateStartCountDown(int countdown)
     {
@@ -268,6 +305,32 @@ public class PvPGameMode : GameMode
                 break;
         }
         Debug.Log($"UpdateScore Blue : {blueScore}, Red : {redScore}");
+    }
+
+    private void AddeTeamCount(int teamNumber)
+    {
+        switch(teamNumber)
+        {
+            case 0:
+                bluePlayers++;
+                break;
+            case 1:
+                redPlayers++;
+                break;
+        }
+    }
+
+    private void SubtractTeamCount(int teamNumber)
+    {
+        switch (teamNumber)
+        {
+            case 0:
+                bluePlayers--;
+                break;
+            case 1:
+                redPlayers--;
+                break;
+        }
     }
 
     public void ExitRoom()

@@ -22,6 +22,10 @@ public class PlayerHealth : HealthComponent
         playerState = GetComponent<PlayerState>();
 
         hitEffect = transform.Find("BloodSplatDirectional").GetComponent<ParticleSystem>();
+        invincibleParticle = transform.Find("ShieldSoftYellow").GetComponent<ParticleSystem>();
+
+        playerState.OnSetTeamNumber -= SetHPBarColor;
+        playerState.OnSetTeamNumber += SetHPBarColor;
 
         invincibleTime = 2.0f;
     }
@@ -42,7 +46,7 @@ public class PlayerHealth : HealthComponent
         hpBarWidget.SetupNickname(photonView.Controller.NickName);
 
         // invincibleTime초 동안 무적 상태
-        if (true == PhotonNetwork.IsMasterClient)
+        if (invincibleTime > 0.0f)
         {
             StartCoroutine(CoActiveInvincible());
         }

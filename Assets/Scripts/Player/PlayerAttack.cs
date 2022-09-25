@@ -62,7 +62,7 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
         // TODO : 선택한 Weapon을 Instantiate 하도록 수정
         if(true == photonView.IsMine)
         {
-            weaponObject = PhotonNetwork.Instantiate("TestWeapon", transform.position, Quaternion.identity);
+            weaponObject = PhotonNetwork.Instantiate("TestWeapon", transform.position, transform.rotation);
             SetupWeapon(weaponObject);
         }
         

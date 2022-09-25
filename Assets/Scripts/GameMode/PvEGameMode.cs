@@ -1,3 +1,4 @@
+using Cinemachine;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Collections;
@@ -8,6 +9,9 @@ using UnityEngine.UI;
 
 public class PvEGameMode : GameMode
 {
+    // Player
+    private CinemachineVirtualCamera blueFollowCamera;
+
     [SerializeField]
     private float respawnTime = 3.0f;
 
@@ -24,6 +28,10 @@ public class PvEGameMode : GameMode
     private void Awake()
     {
         teamHPWidgetList = transform.GetComponentsInChildren<TeamHPWidget>().ToList();
+
+        CinemachineVirtualCamera redFollowCamera = GameObject.Find("RedFollowCamera").GetComponent<CinemachineVirtualCamera>();
+        blueFollowCamera = GameObject.Find("BlueFollowCamera").GetComponent<CinemachineVirtualCamera>();
+        redFollowCamera.enabled = false;
     }
 
     // Start is called before the first frame update
@@ -121,7 +129,12 @@ public class PvEGameMode : GameMode
         }
 
         playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, playerStartRotation);
+
+        blueFollowCamera.Follow = playerObject.transform;
+        blueFollowCamera.LookAt = playerObject.transform;
+        
         playerObject.GetComponent<PlayerState>().StartPosition = playerStartPosition;
+        playerObject.GetComponent<PlayerState>().StartRotation = playerStartRotation;
     }
 
     public override void StartMatch()
@@ -175,7 +188,10 @@ public class PvEGameMode : GameMode
         if(null != player)
         {
             Debug.Log("Restart Player");
-            player.transform.position = player.GetComponent<PlayerState>().StartPosition;
+            PlayerState playerState = player.GetComponent<PlayerState>();
+
+            player.transform.position = playerState.StartPosition;
+            player.transform.rotation = playerState.StartRotation;
             player.SetActive(false);
             player.SetActive(true);
         }

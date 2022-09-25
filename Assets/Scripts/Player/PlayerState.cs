@@ -1,3 +1,4 @@
+using Cinemachine;
 using Photon.Pun;
 using System;
 using System.Collections;
@@ -10,6 +11,7 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
     public int TeamNumber { get { return teamNumber; } }
 
     public Vector3 StartPosition { get; set; }
+    public Quaternion StartRotation { get; set; }
 
     [SerializeField]
     private int killScore = 0;
@@ -47,6 +49,7 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
     }
     public event Action<GameObject> OnDeath;
     public event Action<int> OnKill;
+    public event Action<int> OnSetTeamNumber;
     
     private void OnEnable()
     {
@@ -62,6 +65,7 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
     public void SetTeamNumber(int newTeamNumber)
     {
         teamNumber = newTeamNumber;
+        OnSetTeamNumber?.Invoke(teamNumber);
     }
 
     [PunRPC]
@@ -74,6 +78,15 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        
+        if(true == stream.IsWriting)
+        {
+            stream.SendNext(StartPosition);
+            stream.SendNext(StartRotation);
+        }
+        else
+        {
+            StartPosition = (Vector3)stream.ReceiveNext();
+            StartRotation = (Quaternion)stream.ReceiveNext();
+        }
     }
 }
