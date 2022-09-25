@@ -8,11 +8,13 @@ public class HPBarWidget : MonoBehaviour
 {
     private Slider hpBarSlider;
     private TMP_Text nickName;
+    private Image fill;
 
     private void Awake()
     {
         hpBarSlider = GetComponentInChildren<Slider>();
         nickName = GetComponentInChildren<TMP_Text>();
+        fill = Utils.FindChild<Image>(gameObject, "Fill", true);
     }
 
     public void SetupHPBarWidget(float DefaultHp, float CurrentHp)
@@ -34,6 +36,24 @@ public class HPBarWidget : MonoBehaviour
         }
 
         nickName.text = newNickname;
+    }
+
+    public void SetHPBarColor(int teamNumber)
+    {
+        if(null == fill)
+        {
+            fill = Utils.FindChild<Image>(gameObject, "Fill", true);
+        }
+
+        switch (teamNumber)
+        {
+            case 0:
+                fill.color = Color.blue;
+                break;
+            case 1:
+                fill.color = Color.red;
+                break;
+        }
     }
 
     public void UpdateHP(float CurrentHp)

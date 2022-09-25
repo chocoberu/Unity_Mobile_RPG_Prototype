@@ -106,6 +106,11 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
         return -1;
     }
 
+    public void SetHPBarColor(int teamNumber)
+    {
+        hpBarWidget.SetHPBarColor(teamNumber);
+    }
+
     [PunRPC]
     public virtual void RestoreHealth(float healthAmount)
     {

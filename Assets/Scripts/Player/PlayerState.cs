@@ -27,6 +27,7 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
             }
 
             killScore = value;
+            OnKill?.Invoke(teamNumber);
             photonView.RPC("SetKillScore", RpcTarget.Others, killScore);
         }
     }
@@ -41,13 +42,11 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
             }
 
             deathScore = value;
-            if (null != OnDeath)
-            {
-                OnDeath.Invoke(gameObject);
-            }
+            OnDeath?.Invoke(gameObject);
         }
     }
     public event Action<GameObject> OnDeath;
+    public event Action<int> OnKill;
     
     private void OnEnable()
     {
@@ -70,22 +69,11 @@ public class PlayerState : MonoBehaviourPun, IPunObservable
     {
         killScore = newKillScore;
         Debug.Log($"Kill score : {killScore}");
+        OnKill?.Invoke(teamNumber);
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        if(true == stream.IsWriting)
-        {
-            stream.SendNext(teamNumber);
-            stream.SendNext(KillScore);
-            stream.SendNext(DeathScore);
-        }
-        else
-        {
-            teamNumber = (int)stream.ReceiveNext();
-            KillScore = (int)stream.ReceiveNext();
-            DeathScore = (int)stream.ReceiveNext();
-        }
+        
     }
-
 }
