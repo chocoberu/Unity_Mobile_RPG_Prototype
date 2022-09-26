@@ -36,7 +36,7 @@ public class GameMode : MonoBehaviourPunCallbacks
 
     // Player
     protected GameObject playerObject;
-    protected int TeamNumber;
+    protected int TeamNumber = 0;
     protected CinemachineVirtualCamera blueFollowCamera;
     protected CinemachineVirtualCamera redFollowCamera;
 
@@ -149,6 +149,21 @@ public class GameMode : MonoBehaviourPunCallbacks
     protected void SetStartTime(float time)
     {
         startTime = time;
+    }
+
+    protected void SetFollowCamera()
+    {
+        switch (TeamNumber)
+        {
+            case 0:
+                blueFollowCamera.Follow = playerObject.transform;
+                blueFollowCamera.LookAt = playerObject.transform;
+                break;
+            case 1:
+                redFollowCamera.Follow = playerObject.transform;
+                redFollowCamera.LookAt = playerObject.transform;
+                break;
+        }
     }
 
 }

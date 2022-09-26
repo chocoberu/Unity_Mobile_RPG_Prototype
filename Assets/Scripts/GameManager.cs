@@ -3,6 +3,7 @@ using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
@@ -114,7 +115,6 @@ public class GameManager : MonoBehaviourPunCallbacks
         switch(GameInstance.Instance.GameType)
         {
             case GameInstance.EGameType.Single:
-                PhotonNetwork.LoadLevel("GameStart");
                 break;
             case GameInstance.EGameType.PvE:
             case GameInstance.EGameType.PvP:
@@ -126,10 +126,28 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        // SinglePlay에서 게임을 시작할 때만 Room 생성
-        if (GameInstance.EGameType.Single == GameInstance.Instance.GameType && null == gameMode)
+        if (GameInstance.EGameType.Single == GameInstance.Instance.GameType)
         {
-            PhotonNetwork.CreateRoom("SinglePlay");
+            // SinglePlay에서 게임을 시작할 때만 Room 생성
+            if (null == gameMode)
+            {
+                PhotonNetwork.CreateRoom("SinglePlay");
+            }
+            else
+            {
+                PhotonNetwork.Disconnect();
+            }
+        }
+    }
+
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        base.OnDisconnected(cause);
+        Debug.Log($"Disconnect : {cause}");
+        
+        if(GameInstance.EGameType.Single == GameInstance.Instance.GameType)
+        {
+            SceneManager.LoadScene("GameStart");
         }
     }
 

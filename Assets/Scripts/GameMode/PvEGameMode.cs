@@ -32,6 +32,8 @@ public class PvEGameMode : GameMode
         CinemachineVirtualCamera redFollowCamera = GameObject.Find("RedFollowCamera").GetComponent<CinemachineVirtualCamera>();
         blueFollowCamera = GameObject.Find("BlueFollowCamera").GetComponent<CinemachineVirtualCamera>();
         redFollowCamera.enabled = false;
+
+        TeamNumber = 0;
     }
 
     // Start is called before the first frame update
@@ -114,8 +116,7 @@ public class PvEGameMode : GameMode
 
         playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, playerStartRotation);
 
-        blueFollowCamera.Follow = playerObject.transform;
-        blueFollowCamera.LookAt = playerObject.transform;
+        SetFollowCamera();
         
         playerObject.GetComponent<PlayerState>().StartPosition = playerStartPosition;
         playerObject.GetComponent<PlayerState>().StartRotation = playerStartRotation;

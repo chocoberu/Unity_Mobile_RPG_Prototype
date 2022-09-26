@@ -31,19 +31,23 @@ public class SinglePlayGameMode : GameMode
         CinemachineVirtualCamera redFollowCamera = GameObject.Find("RedFollowCamera").GetComponent<CinemachineVirtualCamera>();
         blueFollowCamera = GameObject.Find("BlueFollowCamera").GetComponent<CinemachineVirtualCamera>();
         redFollowCamera.enabled = false;
+
+        TeamNumber = 0;
     }
 
     // Start is called before the first frame update
     private void Start()
     {
+        for (int i = 0; i < teamHPWidgetList.Count; i++)
+        {
+            teamHPWidgetList[i].gameObject.SetActive(false);
+        }
         MatchState = EMatchState.PreMatch;
     }
 
     public override void UpdatePlayerList()
     {
         base.UpdatePlayerList();
-
-        UpdatePlayerHealthList();
 
         if (false == PhotonNetwork.IsMasterClient)
         {
@@ -53,35 +57,6 @@ public class SinglePlayGameMode : GameMode
         if (MatchState == EMatchState.PreMatch && playerList.Count == PhotonNetwork.CurrentRoom.PlayerCount)
         {
             MatchState = EMatchState.InProgress;
-        }
-    }
-
-    private void UpdatePlayerHealthList()
-    {
-        // PlayerHealthList 업데이트
-        for (int i = 0; i < teamHPWidgetList.Count; i++)
-        {
-            teamHPWidgetList[i].gameObject.SetActive(false);
-        }
-
-        int healthIndex = 0;
-        for (int i = 0; i < playerList.Count; i++)
-        {
-            if (true == playerList[i].photonView.IsMine)
-            {
-                continue;
-            }
-
-            PlayerHealth player = playerList[i].GetComponent<PlayerHealth>();
-
-            player.OnHPChanged -= teamHPWidgetList[healthIndex].UpdateHP;
-            player.OnHPChanged += teamHPWidgetList[healthIndex].UpdateHP;
-
-            teamHPWidgetList[healthIndex].gameObject.SetActive(true);
-            teamHPWidgetList[healthIndex].SetMaxHP(player.DefaultHealth);
-            teamHPWidgetList[healthIndex].UpdateHP(player.Health);
-            teamHPWidgetList[healthIndex].SetNickname(player.photonView.Controller.NickName);
-            healthIndex++;
         }
     }
 
@@ -112,10 +87,9 @@ public class SinglePlayGameMode : GameMode
         }
 
         playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, playerStartRotation);
-        
+
         // Follow Camera 설정
-        blueFollowCamera.Follow = playerObject.transform;
-        blueFollowCamera.LookAt = playerObject.transform;
+        SetFollowCamera();
 
         playerObject.GetComponent<PlayerState>().StartPosition = playerStartPosition;
         playerObject.GetComponent<PlayerState>().StartRotation = playerStartRotation;

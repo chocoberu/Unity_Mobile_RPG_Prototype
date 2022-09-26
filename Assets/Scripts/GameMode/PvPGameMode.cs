@@ -228,21 +228,6 @@ public class PvPGameMode : GameMode
         photonView.RPC("ChangeMatchState", RpcTarget.Others, (int)MatchState);
     }
 
-    private void SetFollowCamera()
-    {
-        switch (TeamNumber)
-        {
-            case 0:
-                blueFollowCamera.Follow = playerObject.transform;
-                blueFollowCamera.LookAt = playerObject.transform;
-                break;
-            case 1:
-                redFollowCamera.Follow = playerObject.transform;
-                redFollowCamera.LookAt = playerObject.transform;
-                break;
-        }
-    }
-
     [PunRPC]
     public void UpdateStartCountDown(int countdown)
     {
