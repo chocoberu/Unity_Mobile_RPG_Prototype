@@ -263,10 +263,10 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
     [PunRPC]
     public void RestartPlayer(Vector3 position, Quaternion rotation)
     {
+        gameObject.SetActive(false);
         transform.position = position;
         transform.rotation = rotation;
 
-        gameObject.SetActive(false);
         gameObject.SetActive(true);
     }
 

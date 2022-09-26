@@ -1,7 +1,9 @@
+using Cinemachine;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GameMode : MonoBehaviourPunCallbacks
@@ -32,6 +34,18 @@ public class GameMode : MonoBehaviourPunCallbacks
     [SerializeField]
     protected List<PlayerState> playerList = new List<PlayerState>();
 
+    // Player
+    protected GameObject playerObject;
+    protected int TeamNumber;
+    protected CinemachineVirtualCamera blueFollowCamera;
+    protected CinemachineVirtualCamera redFollowCamera;
+
+    // GameTime
+    [SerializeField]
+    protected float respawnTime = 3.0f;
+    protected float MaxTime = 180.0f;
+    protected float startTime;
+
     [PunRPC]
     protected void ChangeMatchState(int nextMatchState)
     {
@@ -59,16 +73,26 @@ public class GameMode : MonoBehaviourPunCallbacks
     {
         playerList.Clear();
 
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-        foreach (var player in players)
+        //GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        List<PlayerState> players = GameObject.FindObjectsOfType<PlayerState>().ToList();
+        players.Sort((lhs, rhs) => lhs.photonView.Controller.ActorNumber < rhs.photonView.Controller.ActorNumber ? -1 : 1);
+        foreach (var playerState in players)
         {
-            PlayerState playerState = player.GetComponent<PlayerState>();
+            Debug.Log($"Player : {playerState.photonView.Controller.NickName} enter");
+            //PlayerState playerState = player.GetComponent<PlayerState>();
             if(null == playerState || false == playerState.enabled)
             {
                 continue;
             }
 
             AddPlayerState(playerState);
+
+            // Player Restart 처리는 서버에서 처리
+            if (true == PhotonNetwork.IsMasterClient)
+            {
+                playerState.OnDeath -= RestartPlayer;
+                playerState.OnDeath += RestartPlayer;
+            }
         }
     }
 
@@ -103,11 +127,28 @@ public class GameMode : MonoBehaviourPunCallbacks
 
     }
 
-    public override void OnPlayerLeftRoom(Player otherPlayer)
+    protected virtual void RestartPlayer(GameObject player)
     {
-        base.OnPlayerLeftRoom(otherPlayer);
-
-        UpdatePlayerList();
-        
+        StartCoroutine(CoRestartPlayer(player));
     }
+
+    protected virtual IEnumerator CoRestartPlayer(GameObject player)
+    {
+        yield return new WaitForSeconds(respawnTime);
+
+        if (null != player)
+        {
+            PlayerMovement movement = player.GetComponent<PlayerMovement>();
+            PlayerState playerState = player.GetComponent<PlayerState>();
+
+            movement.photonView.RPC("RestartPlayer", RpcTarget.AllViaServer, playerState.StartPosition, playerState.StartRotation);
+        }
+    }
+
+    [PunRPC]
+    protected void SetStartTime(float time)
+    {
+        startTime = time;
+    }
+
 }

@@ -8,18 +8,6 @@ using UnityEngine.UI;
 
 public class PvPGameMode : GameMode
 {
-    // Player
-    private GameObject playerObject;
-    private int TeamNumber;
-    private CinemachineVirtualCamera blueFollowCamera;
-    private CinemachineVirtualCamera redFollowCamera;
-
-    // Game Time
-    [SerializeField]
-    private float respawnTime = 3.0f;
-    private float MaxTime = 180.0f;
-    private float startTime;
-
     // GameState
     private int bluePlayers;
     private int redPlayers;
@@ -28,6 +16,7 @@ public class PvPGameMode : GameMode
 
     // UI
     private GameObject gameClearUI;
+    private Text gameClearTitle;
     private GameObject backButton;
     [SerializeField]
     private List<TeamHPWidget> teamHPWidgetList;
@@ -39,6 +28,7 @@ public class PvPGameMode : GameMode
         gameClearUI = transform.Find("HUD Canvas/GameClearUI").gameObject;
         backButton = transform.Find("HUD Canvas/BackButton").gameObject;
         teamHPWidgetList = transform.GetComponentsInChildren<TeamHPWidget>().ToList();
+        gameClearTitle = Utils.FindChild<Text>(gameClearUI, "GameClearTitle");
 
         startCountDown = Utils.FindChild<StartCountDown>(gameObject, null, true);
         startCountDown.gameObject.SetActive(false);
@@ -80,13 +70,6 @@ public class PvPGameMode : GameMode
 
         for (int i = 0; i < playerList.Count; i++)
         {
-            // Player Restart 처리는 서버에서 처리
-            if(true == PhotonNetwork.IsMasterClient)
-            {
-                playerList[i].OnDeath -= RestartPlayer;
-                playerList[i].OnDeath += RestartPlayer;
-            }
-
             playerList[i].OnKill -= UpdateScore;
             playerList[i].OnKill += UpdateScore;
         }
@@ -112,7 +95,8 @@ public class PvPGameMode : GameMode
             teamHPWidgetList[i].gameObject.SetActive(false);
         }
 
-        int healthIndex = 0;
+        // 
+        /*int healthIndex = 0;
         for (int i = 0; i < playerList.Count; i++)
         {
             if (true == playerList[i].photonView.IsMine)
@@ -122,7 +106,7 @@ public class PvPGameMode : GameMode
 
             PlayerHealth player = playerList[i].GetComponent<PlayerHealth>();
 
-            if (player.GetTeamNumber() != TeamNumber)
+            if (i % 2 != TeamNumber)
             {
                 continue;
             }
@@ -135,25 +119,7 @@ public class PvPGameMode : GameMode
             teamHPWidgetList[healthIndex].UpdateHP(player.Health);
             teamHPWidgetList[healthIndex].SetNickname(player.photonView.Controller.NickName);
             healthIndex++;
-        }
-    }
-
-    private void RestartPlayer(GameObject player)
-    {
-        StartCoroutine(CoRestartPlayer(player));
-    }
-
-    private IEnumerator CoRestartPlayer(GameObject player)
-    {
-        yield return new WaitForSeconds(respawnTime);
-
-        if (null != player)
-        {
-            PlayerMovement movement = player.GetComponent<PlayerMovement>();
-            PlayerState playerState = player.GetComponent<PlayerState>();
-
-            movement.photonView.RPC("RestartPlayer", RpcTarget.AllViaServer, playerState.StartPosition, playerState.StartRotation);
-        }
+        }*/
     }
 
     public override void InitializeMatch()
@@ -220,7 +186,11 @@ public class PvPGameMode : GameMode
 
         playerObject.GetComponent<PlayerMovement>().enabled = true;
         
-        startTime = (float)PhotonNetwork.Time;
+        if(true == PhotonNetwork.IsMasterClient)
+        {
+            startTime = (float)PhotonNetwork.Time;
+            photonView.RPC("SetStartTime", RpcTarget.Others, startTime);
+        }
     }
 
     public override void EndMatch()
@@ -230,7 +200,6 @@ public class PvPGameMode : GameMode
         gameClearUI.SetActive(true);
         backButton.SetActive(false);
 
-        Text gameClearTitle = Utils.FindChild<Text>(gameClearUI, "GameClearTitle");
         if (blueScore > redScore)
         {
             gameClearTitle.text = "Blue Win";
