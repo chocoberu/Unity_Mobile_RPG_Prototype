@@ -80,8 +80,12 @@ public class PvPGameMode : GameMode
 
         for (int i = 0; i < playerList.Count; i++)
         {
-            playerList[i].OnDeath -= RestartPlayer;
-            playerList[i].OnDeath += RestartPlayer;
+            // Player Restart 처리는 서버에서 처리
+            if(true == PhotonNetwork.IsMasterClient)
+            {
+                playerList[i].OnDeath -= RestartPlayer;
+                playerList[i].OnDeath += RestartPlayer;
+            }
 
             playerList[i].OnKill -= UpdateScore;
             playerList[i].OnKill += UpdateScore;
@@ -136,7 +140,6 @@ public class PvPGameMode : GameMode
 
     private void RestartPlayer(GameObject player)
     {
-        // TODO : 서버에서 처리 후 결과를 전파하는 방식으로 변경 필요?
         StartCoroutine(CoRestartPlayer(player));
     }
 
@@ -146,13 +149,10 @@ public class PvPGameMode : GameMode
 
         if (null != player)
         {
-            Debug.Log("Restart Player");
+            PlayerMovement movement = player.GetComponent<PlayerMovement>();
             PlayerState playerState = player.GetComponent<PlayerState>();
 
-            player.transform.position = playerState.StartPosition;
-            player.transform.rotation = playerState.StartRotation;
-            player.SetActive(false);
-            player.SetActive(true);
+            movement.photonView.RPC("RestartPlayer", RpcTarget.AllViaServer, playerState.StartPosition, playerState.StartRotation);
         }
     }
 

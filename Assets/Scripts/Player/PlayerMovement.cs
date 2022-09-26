@@ -260,6 +260,16 @@ public class PlayerMovement : MonoBehaviourPun, IPunObservable
         return ret;
     }
 
+    [PunRPC]
+    public void RestartPlayer(Vector3 position, Quaternion rotation)
+    {
+        transform.position = position;
+        transform.rotation = rotation;
+
+        gameObject.SetActive(false);
+        gameObject.SetActive(true);
+    }
+
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if(true == stream.IsWriting)
