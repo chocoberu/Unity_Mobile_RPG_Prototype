@@ -6,6 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+[System.Serializable]
+public class GameModeData
+{
+    public float respawnTime;
+    public float maxTime;
+}
+
 public class GameMode : MonoBehaviourPunCallbacks
 {
     public enum EMatchState
