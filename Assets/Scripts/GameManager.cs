@@ -42,7 +42,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         switch(GameInstance.Instance.GameType)
         {
-            case GameInstance.EGameType.Single:
+            case GameInstance.EGameType.SinglePlay:
                 {
                     Debug.Log("SinglePlay GameMode");
                     PhotonNetwork.OfflineMode = true;
@@ -114,7 +114,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         switch(GameInstance.Instance.GameType)
         {
-            case GameInstance.EGameType.Single:
+            case GameInstance.EGameType.SinglePlay:
                 break;
             case GameInstance.EGameType.PvE:
             case GameInstance.EGameType.PvP:
@@ -126,7 +126,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        if (GameInstance.EGameType.Single == GameInstance.Instance.GameType)
+        if (GameInstance.EGameType.SinglePlay == GameInstance.Instance.GameType)
         {
             // SinglePlay에서 게임을 시작할 때만 Room 생성
             if (null == gameMode)
@@ -145,7 +145,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         base.OnDisconnected(cause);
         Debug.Log($"Disconnect : {cause}");
         
-        if(GameInstance.EGameType.Single == GameInstance.Instance.GameType)
+        if(GameInstance.EGameType.SinglePlay == GameInstance.Instance.GameType)
         {
             SceneManager.LoadScene("GameStart");
         }

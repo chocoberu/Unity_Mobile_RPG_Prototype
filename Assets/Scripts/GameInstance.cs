@@ -17,7 +17,7 @@ public class GameInstance : MonoBehaviour
 
     public enum EGameType
     {
-        Single = 0,
+        SinglePlay = 0,
         PvE,
         PvP
     }
@@ -36,16 +36,18 @@ public class GameInstance : MonoBehaviour
         }
     }
 
+    // Game Data
     private string DataPath;
+    private Dictionary<string, GameModeData> gameModeDatas = new Dictionary<string, GameModeData>();
 
     public string Nickname { get; set; }
 
     private int playerIndex = 1;
     public int PlayerIndex { get { return playerIndex; } set { playerIndex = value; } }
-    
+
     private void Awake()
     {
-        if(null == instance)
+        if (null == instance)
         {
             instance = this;
         }
@@ -72,18 +74,16 @@ public class GameInstance : MonoBehaviour
     // Start is called before the first frame update
     private void Start()
     {
-        GameType = EGameType.Single;
+        GameType = EGameType.SinglePlay;
         DontDestroyOnLoad(gameObject);
 
-        // TEST 
-
-        GameModeData gameModeData = LoadJsonFile<GameModeData>(DataPath, "GameModeTest");
-        Debug.Log($"gameMode, respawnTime : {gameModeData.respawnTime}, maxTime : {gameModeData.maxTime}");
+        LoadJsonFiles<GameModeData>(DataPath + "/GameMode", ref gameModeDatas);
+        Debug.Log($"gameMode, respawnTime : {gameModeDatas["GameModeTest"].respawnTime}");
     }
 
     private string ObjectToJson(object obj) { return JsonUtility.ToJson(obj); }
     private T JsonToOject<T>(string jsonData) { return JsonUtility.FromJson<T>(jsonData); }
-    
+
     private void CreateJsonFile(string path, string fileName, string jsonData)
     {
         FileStream fileStream = new FileStream(string.Format("{0}/{1}.json", path, fileName), FileMode.Create);
@@ -92,12 +92,44 @@ public class GameInstance : MonoBehaviour
         fileStream.Close();
     }
 
-    private T LoadJsonFile<T>(string path, string fileName) 
-    { 
-        FileStream fileStream = new FileStream(string.Format("{0}/{1}.json", path, fileName), FileMode.Open); 
-        byte[] data = new byte[fileStream.Length]; 
+    private T LoadJsonFile<T>(string path, string fileName)
+    {
+        FileStream fileStream = new FileStream(string.Format("{0}/{1}.json", path, fileName), FileMode.Open);
+        byte[] data = new byte[fileStream.Length];
         fileStream.Read(data, 0, data.Length);
-        fileStream.Close(); string jsonData = Encoding.UTF8.GetString(data); 
-        return JsonUtility.FromJson<T>(jsonData); 
+        fileStream.Close(); 
+        
+        string jsonData = Encoding.UTF8.GetString(data);
+        return JsonUtility.FromJson<T>(jsonData);
+    }
+
+    private T LoadJsonFile<T>(string filePath)
+    {
+        FileStream fileStream = new FileStream(filePath, FileMode.Open);
+        byte[] data = new byte[fileStream.Length];
+        fileStream.Read(data, 0, data.Length);
+        fileStream.Close(); 
+        
+        string jsonData = Encoding.UTF8.GetString(data);
+        return JsonUtility.FromJson<T>(jsonData);
+    }
+
+    private void LoadJsonFiles<T>(string path, ref Dictionary<string, T> dictionary)
+    {
+        string[] jsonList = Directory.GetFiles(path);
+        char[] delimiterChars = { '.', '/', '\\' };
+        for (int i = 0; i < jsonList.Length; i++)
+        {
+            // .json 이외의 파일은 제외
+            if (true == jsonList[i].Contains(".meta") || false == jsonList[i].Contains(".json"))
+            {
+                continue;
+            }
+
+            string[] words = jsonList[i].Split(delimiterChars);
+
+            T jsonObject = LoadJsonFile<T>(jsonList[i]);
+            dictionary.TryAdd(words[words.Length - 2], jsonObject);
+        }
     }
 }
