@@ -9,6 +9,7 @@ public class DamageTextWidget : MonoBehaviour
     private Text damageText;
 
     private Vector3 randomPosValue;
+    private Camera mainCamera;
 
     public static readonly string WidgetPath = "DamageTextWidget";
 
@@ -17,13 +18,8 @@ public class DamageTextWidget : MonoBehaviour
         damageText = GetComponent<Text>();
         damageText.enabled = false;
         randomPosValue = Vector3.zero;
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        // UI가 카메라를 보도록 설정 (빌보드)
-        transform.rotation = Camera.main.transform.rotation; 
+        mainCamera = Camera.main;
     }
 
     public void SetDamageText(Vector3 targetPosition, float damage, int fontSize = 1)
@@ -35,7 +31,7 @@ public class DamageTextWidget : MonoBehaviour
         transform.position = targetPosition + Vector3.up * 2.0f + randomPosValue;
 
         damageText.fontSize = fontSize;
-        transform.rotation = Camera.main.transform.rotation;
+        transform.rotation = mainCamera.transform.rotation;
 
         StartCoroutine(ShowDamageText());
     }

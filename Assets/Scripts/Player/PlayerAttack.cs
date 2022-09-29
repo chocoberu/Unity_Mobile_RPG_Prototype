@@ -140,13 +140,6 @@ public class PlayerAttack : MonoBehaviourPun, IPunObservable
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        if (true == stream.IsWriting)
-        {
 
-        }
-        else
-        {
-
-        }
     }
 }
