@@ -177,7 +177,7 @@ public class Rifle : MonoBehaviourPun, IWeaponable
         {
             target = hit.collider.GetComponent<HealthComponent>();
 
-            if (null != target)
+            if (null != target && false == target.Dead)
             {
                 target.OnDamage(AttackDamage, hit.point, hit.normal, playerHealth.GetTeamNumber());
                 if(true == target.Dead)

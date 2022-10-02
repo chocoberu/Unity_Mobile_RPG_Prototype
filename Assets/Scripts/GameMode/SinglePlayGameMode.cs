@@ -1,3 +1,4 @@
+using Cinemachine;
 using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,10 +8,7 @@ using UnityEngine.UI;
 
 public class SinglePlayGameMode : GameMode
 {
-    [SerializeField]
-    private float respawnTime = 3.0f;
-
-    private GameObject playerObject;
+    // Enemy
     private ZombieBoss zombieBoss;
 
     // UI
@@ -22,36 +20,34 @@ public class SinglePlayGameMode : GameMode
 
     private void Awake()
     {
+        gameClearUI = transform.Find("HUD Canvas/GameClearUI").gameObject;
+        backButton = transform.Find("HUD Canvas/BackButton").gameObject;
         teamHPWidgetList = transform.GetComponentsInChildren<TeamHPWidget>().ToList();
+        gameClearTitle = Utils.FindChild<Text>(gameClearUI, "GameClearTitle");
+        detail = Utils.FindChild<Text>(gameClearUI, "Detail");
+
+        gameClearUI.SetActive(false);
+
+        CinemachineVirtualCamera redFollowCamera = GameObject.Find("RedFollowCamera").GetComponent<CinemachineVirtualCamera>();
+        blueFollowCamera = GameObject.Find("BlueFollowCamera").GetComponent<CinemachineVirtualCamera>();
+        redFollowCamera.enabled = false;
+
+        TeamNumber = 0;
     }
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-        gameClearTitle = gameClearUI.transform.Find("GameClearTitle").GetComponent<Text>();
-        detail = gameClearUI.transform.Find("Detail").GetComponent<Text>();
-
-        gameClearUI.SetActive(false);
+        for (int i = 0; i < teamHPWidgetList.Count; i++)
+        {
+            teamHPWidgetList[i].gameObject.SetActive(false);
+        }
         MatchState = EMatchState.PreMatch;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        //Debug.Log($"Time.time : {Time.time}, PhotonNetwork.time : {PhotonNetwork.Time}");
     }
 
     public override void UpdatePlayerList()
     {
         base.UpdatePlayerList();
-
-        for (int i = 0; i < playerList.Count; i++)
-        {
-            playerList[i].OnDeath -= RestartPlayer;
-            playerList[i].OnDeath += RestartPlayer;
-        }
-
-        UpdatePlayerHealthList();
 
         if (false == PhotonNetwork.IsMasterClient)
         {
@@ -61,35 +57,6 @@ public class SinglePlayGameMode : GameMode
         if (MatchState == EMatchState.PreMatch && playerList.Count == PhotonNetwork.CurrentRoom.PlayerCount)
         {
             MatchState = EMatchState.InProgress;
-        }
-    }
-
-    private void UpdatePlayerHealthList()
-    {
-        // PlayerHealthList 업데이트
-        for (int i = 0; i < teamHPWidgetList.Count; i++)
-        {
-            teamHPWidgetList[i].gameObject.SetActive(false);
-        }
-
-        int healthIndex = 0;
-        for (int i = 0; i < playerList.Count; i++)
-        {
-            if (true == playerList[i].photonView.IsMine)
-            {
-                continue;
-            }
-
-            PlayerHealth player = playerList[i].GetComponent<PlayerHealth>();
-
-            player.OnHPChanged -= teamHPWidgetList[healthIndex].UpdateHP;
-            player.OnHPChanged += teamHPWidgetList[healthIndex].UpdateHP;
-
-            teamHPWidgetList[healthIndex].gameObject.SetActive(true);
-            teamHPWidgetList[healthIndex].SetMaxHP(player.DefaultHealth);
-            teamHPWidgetList[healthIndex].UpdateHP(player.Health);
-            teamHPWidgetList[healthIndex].SetNickname(player.photonView.Controller.NickName);
-            healthIndex++;
         }
     }
 
@@ -108,17 +75,24 @@ public class SinglePlayGameMode : GameMode
         string playerStartName = $"BluePlayer{PhotonNetwork.LocalPlayer.ActorNumber}";
 
         Vector3 playerStartPosition = Vector3.up;
+        Quaternion playerStartRotation = Quaternion.identity;
         foreach (var playerStart in playerStartList)
         {
             if (true == playerStartName.Equals(playerStart.name))
             {
                 playerStartPosition = playerStart.transform.position;
+                playerStartRotation = playerStart.transform.rotation;
                 break;
             }
         }
 
-        playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, Quaternion.identity);
+        playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, playerStartRotation);
+
+        // Follow Camera 설정
+        SetFollowCamera();
+
         playerObject.GetComponent<PlayerState>().StartPosition = playerStartPosition;
+        playerObject.GetComponent<PlayerState>().StartRotation = playerStartRotation;
     }
 
     public override void StartMatch()
@@ -158,24 +132,6 @@ public class SinglePlayGameMode : GameMode
         PlayerState playerState = playerObject.GetComponent<PlayerState>();
 
         detail.text = $"Kill : {playerState.KillScore} Death : {playerState.DeathScore}";
-    }
-
-    private void RestartPlayer(GameObject player)
-    {
-        StartCoroutine(CoRestartPlayer(player));
-    }
-
-    private IEnumerator CoRestartPlayer(GameObject player)
-    {
-        yield return new WaitForSeconds(respawnTime);
-
-        if (null != player)
-        {
-            Debug.Log("Restart Player");
-            player.transform.position = player.GetComponent<PlayerState>().StartPosition;
-            player.SetActive(false);
-            player.SetActive(true);
-        }
     }
 
     private void OnBossDead()

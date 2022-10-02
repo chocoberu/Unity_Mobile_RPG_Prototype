@@ -8,11 +8,19 @@ public class HPBarWidget : MonoBehaviour
 {
     private Slider hpBarSlider;
     private TMP_Text nickName;
+    private Image fill;
+
+    private Camera mainCamera;
+    private Transform parent;
 
     private void Awake()
     {
         hpBarSlider = GetComponentInChildren<Slider>();
         nickName = GetComponentInChildren<TMP_Text>();
+        fill = Utils.FindChild<Image>(gameObject, "Fill", true);
+
+        mainCamera = Camera.main;
+        parent = transform.parent;
     }
 
     public void SetupHPBarWidget(float DefaultHp, float CurrentHp)
@@ -36,6 +44,24 @@ public class HPBarWidget : MonoBehaviour
         nickName.text = newNickname;
     }
 
+    public void SetHPBarColor(int teamNumber)
+    {
+        if(null == fill)
+        {
+            fill = Utils.FindChild<Image>(gameObject, "Fill", true);
+        }
+
+        switch (teamNumber)
+        {
+            case 0:
+                fill.color = Color.blue;
+                break;
+            case 1:
+                fill.color = Color.red;
+                break;
+        }
+    }
+
     public void UpdateHP(float CurrentHp)
     {
         hpBarSlider.value = CurrentHp;
@@ -44,8 +70,7 @@ public class HPBarWidget : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Transform parent = transform.parent;
         transform.position = parent.position + Vector3.up * (parent.GetComponent<Collider>().bounds.size.y + 0.2f);
-        transform.rotation = Camera.main.transform.rotation; // UI가 카메라를 보도록 설정 (빌보드)
+        transform.rotation = mainCamera.transform.rotation; // UI가 카메라를 보도록 설정 (빌보드)
     }
 }

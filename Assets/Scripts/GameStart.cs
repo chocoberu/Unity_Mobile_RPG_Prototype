@@ -32,7 +32,7 @@ public class GameStart : MonoBehaviour
     {
         // TODO : 캐릭터 선택 or 무기 선택 UI 이후에 진입하도록 수정
         // GameInstance를 SinglePlay에 맞게 설정
-        GameInstance.Instance.GameType = GameInstance.EGameType.Single;
+        GameInstance.Instance.GameType = GameInstance.EGameType.SinglePlay;
         GameInstance.Instance.Nickname = "Player";
         GameInstance.Instance.PlayerIndex = 1;
         SceneManager.LoadScene("Town");

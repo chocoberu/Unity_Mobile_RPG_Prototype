@@ -17,8 +17,14 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     public event Action OnDeath;
     public event Action<float> OnHPChanged;
 
+    protected bool invincible = false;
+    protected float invincibleTime = 2.0f;
+
     // UI
     public GameObject damageWidgetObject;
+
+    // Particle
+    protected ParticleSystem invincibleParticle;
 
     protected virtual void OnEnable()
     {
@@ -55,6 +61,7 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
     [PunRPC]
     public virtual void OnDamage(float damage, Vector3 hitPosition, Vector3 hitNormal, int AttackerTeamNumber)
     {
+        // TODO : 공격 타입, 공격자 추가 필요
         if(true == PhotonNetwork.IsMasterClient)
         {
             Debug.Log($"OnDamage, Damage : {damage}");
@@ -102,6 +109,11 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
         return -1;
     }
 
+    public void SetHPBarColor(int teamNumber)
+    {
+        hpBarWidget.SetHPBarColor(teamNumber);
+    }
+
     [PunRPC]
     public virtual void RestoreHealth(float healthAmount)
     {
@@ -139,5 +151,14 @@ public class HealthComponent : MonoBehaviourPun, IDamageable
         {
             hpBarWidget.gameObject.SetActive(false);
         }
+    }
+
+    protected IEnumerator CoActiveInvincible()
+    {
+        invincible = true;
+        invincibleParticle?.Play();
+        yield return new WaitForSeconds(invincibleTime);
+        invincible = false;
+        invincibleParticle?.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 }

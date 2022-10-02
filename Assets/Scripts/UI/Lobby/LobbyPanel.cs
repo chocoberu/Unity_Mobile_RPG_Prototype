@@ -71,6 +71,18 @@ public class LobbyPanel : UIBase
 
             RoomNameText.text = room.Name;
             PlayerCount.text = $"{room.PlayerCount} / {room.MaxPlayers}";
+            if(true == room.CustomProperties.ContainsKey(LobbyManager.GameTypeKey))
+            {
+                switch((int)room.CustomProperties[LobbyManager.GameTypeKey])
+                {
+                    case 0:
+                        GameType.text = "PvE";
+                        break;
+                    case 1:
+                        GameType.text = "PvP";
+                        break;
+                }
+            }
 
             if (true == room.IsOpen)
             {

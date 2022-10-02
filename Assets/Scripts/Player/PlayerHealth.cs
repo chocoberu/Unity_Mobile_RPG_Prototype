@@ -22,6 +22,12 @@ public class PlayerHealth : HealthComponent
         playerState = GetComponent<PlayerState>();
 
         hitEffect = transform.Find("BloodSplatDirectional").GetComponent<ParticleSystem>();
+        invincibleParticle = transform.Find("ShieldSoftYellow").GetComponent<ParticleSystem>();
+
+        playerState.OnSetTeamNumber -= SetHPBarColor;
+        playerState.OnSetTeamNumber += SetHPBarColor;
+
+        invincibleTime = 2.0f;
     }
 
     protected override void OnEnable()
@@ -38,6 +44,17 @@ public class PlayerHealth : HealthComponent
         }
 
         hpBarWidget.SetupNickname(photonView.Controller.NickName);
+
+        // invincibleTime초 동안 무적 상태
+        if (invincibleTime > 0.0f)
+        {
+            StartCoroutine(CoActiveInvincible());
+        }
+    }
+
+    protected void OnDisable()
+    {
+        StopAllCoroutines();
     }
 
     [PunRPC]
@@ -50,6 +67,11 @@ public class PlayerHealth : HealthComponent
     [PunRPC]
     public override void OnDamage(float damage, Vector3 hitPosition, Vector3 hitNormal, int AttackerTeamNumber)
     {
+        if(true == invincible || true == Dead)
+        {
+            return;
+        }
+
         if (false == Dead && AttackerTeamNumber != GetTeamNumber())
         {
             // 피격 이펙트 플레이

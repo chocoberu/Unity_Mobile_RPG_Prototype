@@ -1,3 +1,4 @@
+using Cinemachine;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Collections;
@@ -8,10 +9,7 @@ using UnityEngine.UI;
 
 public class PvEGameMode : GameMode
 {
-    [SerializeField]
-    private float respawnTime = 3.0f;
-
-    private GameObject playerObject;
+    // Enemy
     private ZombieBoss zombieBoss;
 
     // UI
@@ -23,34 +21,30 @@ public class PvEGameMode : GameMode
 
     private void Awake()
     {
+        gameClearUI = transform.Find("HUD Canvas/GameClearUI").gameObject;
+        backButton = transform.Find("HUD Canvas/BackButton").gameObject;
         teamHPWidgetList = transform.GetComponentsInChildren<TeamHPWidget>().ToList();
+        gameClearTitle = Utils.FindChild<Text>(gameClearUI, "GameClearTitle");
+        detail = Utils.FindChild<Text>(gameClearUI, "Detail");
+
+        gameClearUI.SetActive(false);
+
+        CinemachineVirtualCamera redFollowCamera = GameObject.Find("RedFollowCamera").GetComponent<CinemachineVirtualCamera>();
+        blueFollowCamera = GameObject.Find("BlueFollowCamera").GetComponent<CinemachineVirtualCamera>();
+        redFollowCamera.enabled = false;
+
+        TeamNumber = 0;
     }
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-        gameClearTitle = gameClearUI.transform.Find("GameClearTitle").GetComponent<Text>();
-        detail = gameClearUI.transform.Find("Detail").GetComponent<Text>();
-        
-        gameClearUI.SetActive(false);
         MatchState = EMatchState.PreMatch;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        //Debug.Log($"Time.time : {Time.time}, PhotonNetwork.time : {PhotonNetwork.Time}");
     }
 
     public override void UpdatePlayerList()
     {
         base.UpdatePlayerList();
-        
-        for(int i = 0; i < playerList.Count; i++)
-        {
-            playerList[i].OnDeath -= RestartPlayer;
-            playerList[i].OnDeath += RestartPlayer;
-        }
 
         UpdatePlayerHealthList();
 
@@ -109,17 +103,23 @@ public class PvEGameMode : GameMode
         string playerStartName = $"BluePlayer{GameInstance.Instance.PlayerIndex}";
 
         Vector3 playerStartPosition = playerStartList[0].transform.position;
+        Quaternion playerStartRotation = playerStartList[0].transform.rotation;
         foreach(var playerStart in playerStartList)
         {
             if(true == playerStartName.Equals(playerStart.name))
             {
                 playerStartPosition = playerStart.transform.position;
+                playerStartRotation = playerStart.transform.rotation;
                 break;
             }
         }
 
-        playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, Quaternion.identity);
+        playerObject = PhotonNetwork.Instantiate("TestPlayer", playerStartPosition, playerStartRotation);
+
+        SetFollowCamera();
+        
         playerObject.GetComponent<PlayerState>().StartPosition = playerStartPosition;
+        playerObject.GetComponent<PlayerState>().StartRotation = playerStartRotation;
     }
 
     public override void StartMatch()
@@ -159,24 +159,6 @@ public class PvEGameMode : GameMode
         PlayerState playerState = playerObject.GetComponent<PlayerState>();
 
         detail.text = $"Kill : {playerState.KillScore} Death : {playerState.DeathScore}";
-    }
-
-    private void RestartPlayer(GameObject player)
-    {
-        StartCoroutine(CoRestartPlayer(player));
-    }
-
-    private IEnumerator CoRestartPlayer(GameObject player)
-    {
-        yield return new WaitForSeconds(respawnTime);
-
-        if(null != player)
-        {
-            Debug.Log("Restart Player");
-            player.transform.position = player.GetComponent<PlayerState>().StartPosition;
-            player.SetActive(false);
-            player.SetActive(true);
-        }
     }
 
     private void OnBossDead()

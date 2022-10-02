@@ -13,6 +13,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public static readonly int MaxRoomCount = 5;
     public static readonly int MaxPlayerCount = 4;
 
+    public static readonly string GameTypeKey = "t";
+    public static readonly string ReadyKey = "r";
+
     private enum EUIMode
     {
         Background = 0,
@@ -92,7 +95,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         background.SetConectionInfoText("");
         PhotonNetwork.LocalPlayer.CustomProperties.Clear();
-        PhotonNetwork.LocalPlayer.CustomProperties.TryAdd("ready", false);
+        PhotonNetwork.LocalPlayer.CustomProperties.TryAdd(ReadyKey, false);
 
         ChangeUIMode(EUIMode.Lobby);
     }
@@ -122,7 +125,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         ChangeUIMode(EUIMode.Room);
 
         object type;
-        PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("GameType", out type);
+        PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(GameTypeKey, out type);
         string gameType = "";
         if((int)type == 0)
         {
@@ -159,13 +162,13 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         }
 
         ExitGames.Client.Photon.Hashtable customProperties = newPlayer.CustomProperties;
-        if(true == customProperties.ContainsKey("ready"))
+        if(true == customProperties.ContainsKey(ReadyKey))
         {
-            customProperties["ready"] = false;
+            customProperties[ReadyKey] = false;
         }
         else
         {
-            customProperties.TryAdd("ready", false);
+            customProperties.TryAdd(ReadyKey, false);
         }
         newPlayer.SetCustomProperties(customProperties);
 
@@ -191,7 +194,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             roomPanel.SetReadyStartButton(true);
             background.SetPrevButtonInteractable(true);
             ExitGames.Client.Photon.Hashtable customProperties = PhotonNetwork.LocalPlayer.CustomProperties;
-            customProperties["ready"] = true;
+            customProperties[ReadyKey] = true;
             PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
         }
         
@@ -211,7 +214,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         GameInstance.Instance.Nickname = PhotonNetwork.NickName;
         Debug.Log($"Nickname : {PhotonNetwork.NickName}");
         
-        if (false == PhotonNetwork.IsConnected)
+        if (false == PhotonNetwork.IsConnected || true == PhotonNetwork.OfflineMode)
         {
             ConnectMasterServer();
         }
@@ -232,12 +235,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         }
 
         // TODO : PvP 구현 이후 삭제 예정
-        if(1 == gameType)
-        {
-            errorMessage.gameObject.SetActive(true);
-            errorMessage.SetErrorMessage("PvP는 개발 예정입니다");
-            return;
-        }
+        //if(1 == gameType)
+        //{
+        //    errorMessage.gameObject.SetActive(true);
+        //    errorMessage.SetErrorMessage("PvP는 개발 예정입니다");
+        //    return;
+        //}
 
         if (PhotonNetwork.CountOfRooms >= MaxRoomCount)
         {
@@ -248,11 +251,13 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         }
 
         ExitGames.Client.Photon.Hashtable customProperties = new ExitGames.Client.Photon.Hashtable();
-        customProperties.Add("GameType", gameType);
+        customProperties.Add(GameTypeKey, gameType);
+        var roomPropertiesLobby = new string[1];
+        roomPropertiesLobby[0] = GameTypeKey;
 
-        PhotonNetwork.LocalPlayer.CustomProperties["ready"] = true;
-        PhotonNetwork.CreateRoom(roomName, new RoomOptions { MaxPlayers = (byte)MaxPlayerCount, CustomRoomProperties = customProperties });
-
+        PhotonNetwork.LocalPlayer.CustomProperties[ReadyKey] = true;
+        PhotonNetwork.CreateRoom(roomName, new RoomOptions { MaxPlayers = (byte)MaxPlayerCount, CustomRoomProperties = customProperties, CustomRoomPropertiesForLobby = roomPropertiesLobby });
+        
         ChangeUIMode(EUIMode.Background);
         background.SetConectionInfoText("create room");
     }
@@ -298,7 +303,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         // Start Button으로 동작
         if(true == PhotonNetwork.IsMasterClient)
         {
-            if(false == IsStartGame())
+            if(false == CanStartGame())
             {
                 Debug.Log("Log : 게임을 시작할 수 없습니다. 모든 플레이어가 준비된 상태여야 합니다.");
                 errorMessage.gameObject.SetActive(true);
@@ -307,7 +312,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
             }
             else
             {
-                switch((int)PhotonNetwork.CurrentRoom.CustomProperties["GameType"])
+                switch((int)PhotonNetwork.CurrentRoom.CustomProperties[GameTypeKey])
                 {
                     case 0:
                         GameInstance.Instance.GameType = GameInstance.EGameType.PvE;
@@ -431,8 +436,15 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         roomPanel.UpdatePlayerList(playerList);
     }
 
-    private bool IsStartGame()
+    private bool CanStartGame()
     {
+        // PvP인 경우 인원수가 홀수이면 게임을 시작할 수 없음
+        int gameType = (int)PhotonNetwork.CurrentRoom.CustomProperties[GameTypeKey];
+        if(1 == gameType && PhotonNetwork.CurrentRoom.PlayerCount % 2 != 0)
+        {
+            return false;
+        }
+
         foreach(var player in PhotonNetwork.CurrentRoom.Players.Values)
         {
             if(true == player.IsMasterClient)
@@ -440,11 +452,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
                 continue;
             }
 
-            if(false == player.CustomProperties.ContainsKey("ready"))
+            if(false == player.CustomProperties.ContainsKey(ReadyKey))
             {
                 return false;
             }
-            if(false == (bool)player.CustomProperties["ready"])
+            if(false == (bool)player.CustomProperties[ReadyKey])
             {
                 return false;
             }
@@ -455,7 +467,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     private void SetReadyState()
     {
         object flag;
-        if (false == PhotonNetwork.LocalPlayer.CustomProperties.TryGetValue("ready", out flag))
+        if (false == PhotonNetwork.LocalPlayer.CustomProperties.TryGetValue(ReadyKey, out flag))
         {
             Debug.Log($"Error : Player CustomProperties not exist ready");
             return;
@@ -463,7 +475,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         ExitGames.Client.Photon.Hashtable customProperties = PhotonNetwork.LocalPlayer.CustomProperties;
 
-        customProperties["ready"] = !(bool)flag;
+        customProperties[ReadyKey] = !(bool)flag;
         PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
         background.SetPrevButtonInteractable((bool)flag);
     }
