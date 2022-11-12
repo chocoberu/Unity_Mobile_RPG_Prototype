@@ -2,6 +2,12 @@
 
 2020~2021년에 제작한 Unity 3D RPG Prototype을 개선 및 기능 추가
 
+시연 영상
+- SinglePlay
+https://youtu.be/xov9UZfR8Hk
+- PvP
+https://youtu.be/7lnXTwt9y-o
+
 1. 개선점
 
 1) LobbyManager 구조 개선
